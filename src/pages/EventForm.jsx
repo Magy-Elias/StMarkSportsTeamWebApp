@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase.js'
 
 // Form that inserts a new row into events (used by Form 1).
 // `fields`: [{ name, label, type: 'text'|'date'|'time'|'textarea'|'select'|..., required, options }]
-export default function EventForm({ title, fields, dir, submitLabel = 'Save event' }) {
+// `defaults`: extra column values to include in the inserted row (e.g. { status: 'pending' })
+export default function EventForm({ title, fields, dir, submitLabel = 'Save event', defaults = {} }) {
   const empty = Object.fromEntries(fields.map((f) => [f.name, '']))
   const [values, setValues] = useState(empty)
   const [status, setStatus] = useState({ state: 'idle' })
@@ -15,7 +16,7 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
     e.preventDefault()
     setStatus({ state: 'saving' })
     // Send empty optional fields as null rather than ''.
-    const row = {}
+    const row = { ...defaults }
     for (const f of fields) {
       const v = values[f.name]
       row[f.name] = v === '' ? null : f.type === 'number' ? Number(v) : v

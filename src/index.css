@@ -80,6 +80,13 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
 .form button:hover:not(:disabled) { background: var(--color-navy); }
 .form button:disabled { opacity: 0.6; }
 
+.pending-actions button { padding: 6px 12px; border-radius: 6px; border: none; font: inherit; font-weight: 600; cursor: pointer; }
+.pending-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.approve-btn { background: var(--color-blue-dark); color: #fff; }
+.approve-btn:hover:not(:disabled) { background: var(--color-navy); }
+.form2-btn { background: var(--color-blue); color: #fff; }
+.form2-btn:hover:not(:disabled) { background: #1569ad; }
+
 .details div { display: grid; grid-template-columns: 140px 1fr; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .details dt { color: var(--muted); }
 .details dd { margin: 0; white-space: pre-wrap; }

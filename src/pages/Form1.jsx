@@ -14,5 +14,5 @@ const FIELDS = [
 ]
 
 export default function Form1() {
-  return <EventForm title="Form 1" fields={FIELDS} dir="rtl" submitLabel="حفظ" />
+  return <EventForm title="Form 1" fields={FIELDS} dir="rtl" submitLabel="حفظ" defaults={{ status: 'pending' }} />
 }

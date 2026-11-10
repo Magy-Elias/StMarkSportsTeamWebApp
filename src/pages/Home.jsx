@@ -20,6 +20,7 @@ export default function Home() {
     supabase
       .from('events')
       .select('id, title, event_date, games_time, leader')
+      .eq('status', 'completed')
       .gte('event_date', toKey(year, month, 1))
       .lte('event_date', toKey(year, month, lastDay))
       .order('event_date')

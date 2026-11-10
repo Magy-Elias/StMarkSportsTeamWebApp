@@ -15,6 +15,8 @@ create table if not exists public.events (
   participants_count integer check (participants_count >= 0), -- عدد المشاركين
   location           text,                   -- المكان
   games_time         integer,                -- الوقت المحدد للالعاب (بالساعات)
+  status             text default 'pending'  -- pending / approved / completed
+                  check (status in ('pending', 'approved', 'completed')),
 
   -- Form 2
   leader             text,

@@ -3,6 +3,7 @@ import Home from './pages/Home.jsx'
 import EventDetail from './pages/EventDetail.jsx'
 import Form1 from './pages/Form1.jsx'
 import Form2 from './pages/Form2.jsx'
+import Pending from './pages/Pending.jsx'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         </NavLink>
         <nav>
           <NavLink to="/" end>Calendar</NavLink>
+          <NavLink to="/pending">Events Pending</NavLink>
           <NavLink to="/form-1">Form 1</NavLink>
           <NavLink to="/form-2">Form 2</NavLink>
         </nav>
@@ -22,6 +24,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/pending" element={<Pending />} />
           <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/form-1" element={<Form1 />} />
           <Route path="/form-2" element={<Form2 />} />

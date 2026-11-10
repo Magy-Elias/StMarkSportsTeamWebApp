@@ -62,7 +62,7 @@ export default function Form2() {
       .filter((g) => Object.values(g).some((v) => v !== null)) // drop fully empty games
     const { error } = await supabase
       .from('events')
-      .update({ leader: clean(plan.leader), co_leader: clean(plan.co_leader), games, day_details: clean(plan.day_details) })
+      .update({ leader: clean(plan.leader), co_leader: clean(plan.co_leader), games, day_details: clean(plan.day_details), status: 'completed' })
       .eq('id', eventId)
     setStatus(error ? { state: 'error', message: error.message } : { state: 'saved' })
   }
