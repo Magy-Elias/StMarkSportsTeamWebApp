@@ -62,11 +62,6 @@ export default function Home() {
         <button onClick={() => shift(1)} aria-label="Next month">›</button>
       </div>
 
-      <div className="legend">
-        <span><i />Form 1 only</span>
-        <span><i className="planned" />Games plan added (Form 2)</span>
-      </div>
-
       {error && <p className="error">Could not load events: {error}</p>}
       {loading && <p className="muted">Loading…</p>}
 
