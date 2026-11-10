@@ -9,7 +9,9 @@ export default function App() {
     <>
       <header className="nav">
         <NavLink to="/" end className="brand" aria-label="ONE99 Sports Team">
-          <img src="/logo.svg" alt="ONE99 Sports Team" />
+          <span className="brand-logo">
+            <img src="/logo.svg" alt="ONE99 Sports Team" />
+          </span>
         </NavLink>
         <nav>
           <NavLink to="/" end>Calendar</NavLink>
