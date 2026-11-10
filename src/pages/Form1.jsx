@@ -10,7 +10,7 @@ const FIELDS = [
   { name: 'event_date', label: 'تاريخ', type: 'date', required: true },
   { name: 'participants_count', label: 'عدد المشاركين', type: 'number', min: 0 },
   { name: 'location', label: 'المكان' },
-  { name: 'games_time', label: 'الوقت المحدد للالعاب', type: 'time' },
+  { name: 'games_time', label: 'الوقت المحدد للالعاب', type: 'number', min: 0, suffix: 'ساعة' },
 ]
 
 export default function Form1() {

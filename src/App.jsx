@@ -8,7 +8,9 @@ export default function App() {
   return (
     <>
       <header className="nav">
-        <span className="brand">St. Mark Sports</span>
+        <NavLink to="/" end className="brand" aria-label="ONE99 Sports Team">
+          <img src="/logo.svg" alt="ONE99 Sports Team" />
+        </NavLink>
         <nav>
           <NavLink to="/" end>Calendar</NavLink>
           <NavLink to="/form-1">Form 1</NavLink>

@@ -14,7 +14,7 @@ create table if not exists public.events (
   event_date         date not null,          -- تاريخ
   participants_count integer check (participants_count >= 0), -- عدد المشاركين
   location           text,                   -- المكان
-  games_time         time,                   -- الوقت المحدد للالعاب
+  games_time         integer,                -- الوقت المحدد للالعاب (بالساعات)
 
   -- Form 2
   leader             text,

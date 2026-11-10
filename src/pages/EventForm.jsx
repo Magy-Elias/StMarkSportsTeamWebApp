@@ -44,7 +44,10 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
                 {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : (
-              <input type={f.type ?? 'text'} name={f.name} value={values[f.name]} onChange={onChange} required={f.required} min={f.min} />
+              <div>
+                <input type={f.type ?? 'text'} name={f.name} value={values[f.name]} onChange={onChange} required={f.required} min={f.min} />
+                {f.suffix && <span className="suffix">{f.suffix}</span>}
+              </div>
             )}
           </label>
         ))}
@@ -53,7 +56,24 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
         </button>
       </form>
       {status.state === 'saved' && (
-        <p className="success">Saved! <Link to={`/events/${status.id}`}>View event</Link></p>
+        <>
+          <p className="success">
+            Saved!{' '}
+            <Link to={`/events/${status.id}`}>View event</Link>
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setStatus({ state: 'idle' })
+              setValues(empty)
+            }}
+          >
+            Submit another
+          </button>
+          <p className="muted">
+            <Link to="/">Back to calendar</Link>
+          </p>
+        </>
       )}
       {status.state === 'error' && <p className="error">Could not save: {status.message}</p>}
     </section>
