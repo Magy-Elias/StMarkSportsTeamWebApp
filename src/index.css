@@ -48,6 +48,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
 
 .brand-logo img {
   display: block;
+  height: 72px;
+  width: auto;
   border-radius: 50%;
 }
 .nav nav { display: flex; gap: 16px; align-items: center; }
