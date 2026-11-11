@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 
 export default function Pending() {
   const [events, setEvents] = useState<{ id: string; title: string; event_date: string; location?: string | null; responsible_person?: string | null; phone?: string | null; games_time?: number | null }[]>([]);

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 
 export type FieldType = 'text' | 'date' | 'time' | 'textarea' | 'select' | 'number' | 'tel';
 
@@ -32,6 +32,11 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
     message: null,
     id: '',
   });
+  // Visitors who aren't logged in can submit, but can't open event pages.
+  const [loggedIn, setLoggedIn] = useState(false);
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => setLoggedIn(Boolean(data.session)));
+  }, []);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
@@ -39,16 +44,19 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ state: 'saving', message: null, id: '' });
-    const row: Record<string, unknown> = { ...defaults };
+    // The ID is generated here rather than read back after the insert, because
+    // visitors who aren't logged in are allowed to add events but not read them.
+    const id = crypto.randomUUID();
+    const row: Record<string, unknown> = { ...defaults, id };
     for (const f of fields) {
       const v = values[f.name];
       row[f.name] = v === '' ? null : f.type === 'number' ? Number(v) : v;
     }
 
-    const { data, error } = await supabase.from('events').insert(row).select('id').single();
+    const { error } = await supabase.from('events').insert(row);
     if (error) setStatus({ state: 'error', message: error.message, id: '' });
     else {
-      setStatus({ state: 'saved', message: null, id: data.id });
+      setStatus({ state: 'saved', message: null, id });
       setValues(empty);
     }
   };
@@ -84,8 +92,13 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
       {status.state === 'saved' && (
         <>
           <p className="success">
-            Saved!{' '}
-            <Link href={`/events/${status.id}`}>View event</Link>
+            Saved!
+            {loggedIn && (
+              <>
+                {' '}
+                <Link href={`/events/${status.id}`}>View event</Link>
+              </>
+            )}
           </p>
           <button
             type="button"
@@ -96,9 +109,11 @@ export default function EventForm({ title, fields, dir, submitLabel = 'Save even
           >
             Submit another
           </button>
-          <p className="muted">
-            <Link href="/">Back to calendar</Link>
-          </p>
+          {loggedIn && (
+            <p className="muted">
+              <Link href="/">Back to home</Link>
+            </p>
+          )}
         </>
       )}
       {status.state === 'error' && <p className="error">Could not save: {status.message}</p>}

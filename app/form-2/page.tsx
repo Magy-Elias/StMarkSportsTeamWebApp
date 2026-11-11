@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 
 const emptyGame = () => ({ leader: '', name: '', description: '', tools: '' });
 const emptyPlan = () => ({ leader: '', co_leader: '', games: [emptyGame()], day_details: '' });

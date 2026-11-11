@@ -1,10 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
-export default function Sidebar() {
+export default function Sidebar({ email }: { email: string | null }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
 
   const nav = [
     { href: '/', label: 'Home' },
@@ -13,6 +17,13 @@ export default function Sidebar() {
     { href: '/form-1', label: 'Form 1' },
     { href: '/form-2', label: 'Form 2' },
   ];
+
+  const signOut = async () => {
+    setSigningOut(true);
+    await supabase.auth.signOut();
+    router.replace('/login');
+    router.refresh();
+  };
 
   return (
     <aside className="sidebar">
@@ -35,6 +46,12 @@ export default function Sidebar() {
           );
         })}
       </nav>
+      <div className="sidebar-account">
+        {email && <span className="sidebar-email" title={email}>{email}</span>}
+        <button type="button" onClick={signOut} disabled={signingOut} className="sidebar-signout">
+          {signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
     </aside>
   );
 }
