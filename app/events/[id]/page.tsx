@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import type { Event } from '@/lib/types';
 
 // Fields shown on the detail page, in order. Add or remove entries here.
@@ -16,6 +16,7 @@ const DETAIL_FIELDS = [
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const supabase = await createClient();
 
   const { data, error } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
 

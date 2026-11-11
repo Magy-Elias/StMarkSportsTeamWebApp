@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -23,6 +23,7 @@ export default async function CalendarPage({
   const year = yearParam ? parseInt(yearParam, 10) : now.getFullYear();
   const month = monthParam ? parseInt(monthParam, 10) : now.getMonth();
 
+  const supabase = await createClient();
   const lastDay = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
 

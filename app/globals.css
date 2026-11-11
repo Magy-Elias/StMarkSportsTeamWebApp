@@ -206,3 +206,27 @@ main {
 .game { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 8px; }
 .game h3 { margin: 0 0 8px; font-size: 1rem; }
 .game dl div { grid-template-columns: 140px 1fr; }
+/* Account box at the bottom of the side menu */
+.sidebar-account {
+  margin-top: auto;
+  padding: 16px 20px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sidebar-email { font-size: 0.85rem; color: rgba(255,255,255,0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-signout { font: inherit; font-weight: 600; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: none; color: #fff; cursor: pointer; }
+.sidebar-signout:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
+.sidebar-signout:disabled { opacity: 0.6; }
+
+/* Pages shown without the side menu (login, public Form 1) */
+main.no-sidebar { margin-left: 0; }
+
+/* Login screen */
+.login-page { min-height: calc(100vh - 48px); display: flex; align-items: center; justify-content: center; }
+.login-card { width: 100%; max-width: 400px; text-align: center; }
+.login-card .form { text-align: left; margin-top: 16px; }
+.login-card h1 { margin: 12px 0 4px; }
+.login-logo { width: 72px; height: auto; }
+.login-footer { margin-top: 20px; font-size: 0.9rem; }
