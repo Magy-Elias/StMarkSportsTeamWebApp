@@ -1,0 +1,21 @@
+# Render Blueprint: runs the app as a Node web service.
+# Next.js needs a running server (login checks in proxy.ts and pages that
+# load events per request), so a Static Site won't work.
+services:
+  - type: web
+    name: stmark-sports-team
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Set these in the Render dashboard when creating the service.
+      # They're needed at build time too, so a change needs a redeploy.
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
