@@ -1,3 +1,5 @@
+import type { ScheduleSlot } from '@/lib/schedule';
+
 export type EventStatus = 'pending' | 'approved' | 'completed';
 
 export type EventGame = {
@@ -19,7 +21,9 @@ export type Event = {
   event_date: string;
   participants_count?: number | null;
   location?: string | null;
+  /** Older events only; new events use `schedule`. */
   games_time?: number | null;
+  schedule: ScheduleSlot[];
   status: EventStatus;
   leader?: string | null;
   co_leader?: string | null;

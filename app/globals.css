@@ -308,3 +308,36 @@ main.no-sidebar { margin-left: 0; }
 @media (prefers-reduced-motion: reduce) {
   .sidebar, .sidebar-backdrop { transition: none; }
 }
+
+/* Event details: title with an Edit button */
+.detail-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.btn-edit { font-weight: 700; padding: 8px 18px; border-radius: 8px; background: var(--color-blue-dark); color: #fff; text-decoration: none; }
+.btn-edit:hover { background: var(--color-navy); }
+
+/* Edit form: cancel link under the save button */
+.form-cancel { text-align: center; padding: 6px; }
+
+/* Events Pending: View details button */
+.details-btn { background: none; color: var(--primary); border: 1px solid var(--primary) !important; }
+.details-btn:hover { background: var(--color-blue-tint); }
+
+/* Form 1: date + from/to rows */
+.schedule { display: flex; flex-direction: column; gap: 10px; }
+.schedule-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+.schedule-row:last-child { border-bottom: none; padding-bottom: 0; }
+.schedule-row input[type="date"] { font: inherit; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+.time-picker { display: flex; flex-direction: column; gap: 4px; }
+.time-label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.time-selects { display: flex; align-items: center; gap: 4px; }
+.time-selects select { font: inherit; padding: 8px 6px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.schedule-actions { display: flex; gap: 6px; }
+.form .schedule-btn { width: 40px; height: 40px; padding: 0; font-size: 1.4rem; line-height: 1; border-radius: 8px; }
+.form .schedule-btn.remove { background: none; color: #b42318; border: 1px solid #f1c4c0; }
+.form .schedule-btn.remove:hover { background: #fdecea; }
+.schedule-list { margin: 0; padding-inline-start: 18px; }
+/* Keep date + من + إلى + buttons on one line in the Form 1 card on wider screens. */
+.schedule-row { gap: 8px; }
+.schedule-row input[type="date"] { padding: 8px 6px; }
+.time-selects { gap: 2px; }
+.time-selects select { padding: 8px 2px; }
+.form .schedule-btn { width: 36px; height: 38px; }

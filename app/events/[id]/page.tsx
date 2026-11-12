@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { formatRange, parseSchedule } from '@/lib/schedule';
 import type { Event } from '@/lib/types';
 
 // Fields shown on the detail page, in order. Add or remove entries here.
@@ -11,8 +12,12 @@ const DETAIL_FIELDS = [
   { key: 'goal', label: 'الهدف' },
   { key: 'participants_count', label: 'عدد المشاركين' },
   { key: 'location', label: 'المكان' },
-  { key: 'games_time', label: 'الوقت المحدد للالعاب', format: (v?: string | null) => v?.slice(0, 5) },
+  // Older events saved before the date/time rows: number of hours.
+  { key: 'games_time', label: 'الوقت المحدد للالعاب', format: (v: string) => v && `${v} ساعة` },
 ];
+
+const formatDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,11 +29,17 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   if (!data) return <p className="error">Event not found. <Link href="/">Back to calendar</Link></p>;
 
   const event = data as unknown as Event;
+  const schedule = parseSchedule(event.schedule);
 
   return (
     <article className="card" dir="rtl">
       <Link href="/">→ الرجوع للتقويم</Link>
-      <h1>{event.title}</h1>
+      <div className="detail-header">
+        <h1>{event.title}</h1>
+        <Link href={`/events/${event.id}/edit`} className="btn-edit">
+          تعديل
+        </Link>
+      </div>
       <dl className="details">
         {DETAIL_FIELDS.map(({ key, label, format }) => {
           const raw = event[key as keyof Event];
@@ -41,6 +52,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           );
         })}
+        {schedule.length > 0 && (
+          <div>
+            <dt>الوقت المحدد للالعاب</dt>
+            <dd>
+              <ul className="schedule-list">
+                {schedule.map((s, i) => (
+                  <li key={i}>
+                    {formatDate(s.date)}: <span dir="ltr">{formatRange(s)}</span>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        )}
       </dl>
 
       <section dir="ltr" className="plan">

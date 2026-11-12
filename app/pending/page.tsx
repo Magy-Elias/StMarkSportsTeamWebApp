@@ -57,6 +57,9 @@ export default function Pending() {
           {ev.phone && <div style={{ marginBottom: '8px', color: 'var(--muted)' }}>{ev.phone}</div>}
 
           <div className="pending-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => router.push(`/events/${ev.id}`)} className="details-btn">
+              View details
+            </button>
             {!approvedIds.has(ev.id) && (
               <button
                 onClick={() => approve(ev.id)}
