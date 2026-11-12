@@ -7,7 +7,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const toKey = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
 // One chip on the calendar: an event on one of its days, with that day's start time.
-type DayEntry = { id: string; title: string; leader?: string | null; from: string };
+type DayEntry = { id: string; title: string; status: string; from: string };
 
 export default async function CalendarPage({
   searchParams,
@@ -30,8 +30,9 @@ export default async function CalendarPage({
   // since those rows may fall in this month.
   const { data: events, error } = await supabase
     .from('events')
-    .select('id, title, event_date, leader, schedule')
-    .eq('status', 'completed')
+    .select('id, title, event_date, status, schedule')
+    // Approved = no games plan yet (outlined chip); completed = Form 2 saved (solid chip).
+    .in('status', ['approved', 'completed'])
     .or(`and(event_date.gte.${monthStart},event_date.lte.${monthEnd}),schedule.neq.[]`);
 
   // An event shows on its تاريخ date and on every date in its schedule.
@@ -42,7 +43,7 @@ export default async function CalendarPage({
     for (const day of days) {
       if (day < monthStart || day > monthEnd) continue;
       const from = slots.filter((s) => s.date === day).map((s) => s.from).sort()[0] ?? '';
-      (byDay[day] ??= []).push({ id: e.id, title: e.title, leader: e.leader, from });
+      (byDay[day] ??= []).push({ id: e.id, title: e.title, status: e.status, from });
     }
   }
   // Within a day: timed events in time order, then untimed ones.
@@ -71,6 +72,11 @@ export default async function CalendarPage({
         </a>
       </div>
 
+      <div className="cal-legend">
+        <span><i className="chip-swatch approved" /> Approved, games plan not added yet</span>
+        <span><i className="chip-swatch" /> Games plan added</span>
+      </div>
+
       {error && <p className="error">Could not load events: {error.message}</p>}
 
       <div className="calendar">
@@ -84,7 +90,12 @@ export default async function CalendarPage({
             <div key={key} className={`day${key === todayKey ? ' today' : ''}`}>
               <span className="day-num">{day}</span>
               {(byDay[key] ?? []).map((e) => (
-                <Link key={e.id} href={`/events/${e.id}`} className={`chip${e.leader ? ' planned' : ''}`}>
+                <Link
+                  key={e.id}
+                  href={`/events/${e.id}`}
+                  className={`chip${e.status === 'approved' ? ' approved' : ''}`}
+                  title={e.status === 'approved' ? `${e.title} (games plan not added yet)` : e.title}
+                >
                   {e.from && <b>{formatTime(e.from)} </b>}
                   {e.title}
                 </Link>

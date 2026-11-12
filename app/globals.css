@@ -341,3 +341,10 @@ main.no-sidebar { margin-left: 0; }
 .time-selects { gap: 2px; }
 .time-selects select { padding: 8px 2px; }
 .form .schedule-btn { width: 36px; height: 38px; }
+
+/* Calendar: approved events (no games plan yet) are outlined; completed ones are solid. */
+.chip.approved { background: #fff; color: var(--chip); border: 1px dashed var(--chip); }
+.cal-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); }
+.cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.chip-swatch { display: inline-block; width: 18px; height: 12px; border-radius: 3px; background: var(--chip); }
+.chip-swatch.approved { background: #fff; border: 1px dashed var(--chip); }
