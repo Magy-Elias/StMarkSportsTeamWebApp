@@ -68,6 +68,21 @@ export default function EventForm({
     void supabase.auth.getSession().then(({ data }) => setLoggedIn(Boolean(data.session)));
   }, []);
 
+  // What's still missing, if anything. The save button stays disabled until
+  // every required field is filled and the date/time rows are complete.
+  const problem = (() => {
+    for (const f of fields) {
+      if (f.type === 'schedule') {
+        const { schedule, error } = fromFormSlots(schedules[f.name] ?? []);
+        if (error) return error;
+        if (f.required && schedule.length === 0) return 'missing';
+      } else if (f.required && !(values[f.name] ?? '').trim()) {
+        return 'missing';
+      }
+    }
+    return null;
+  })();
+
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
 
@@ -109,7 +124,8 @@ export default function EventForm({
 
   return (
     <section className="card" dir={dir}>
-      <h1>{title}</h1>
+      {/* dir="auto": English titles (e.g. "Form 1") align left, Arabic ones right. */}
+      <h1 dir="auto">{title}</h1>
       <form onSubmit={onSubmit} className="form">
         {fields.map((f) => (
           f.type === 'schedule' ? (
@@ -142,12 +158,17 @@ export default function EventForm({
           </label>
           )
         ))}
-        <button type="submit" disabled={status.state === 'saving'}>
+        <button type="submit" disabled={status.state === 'saving' || problem !== null}>
           {status.state === 'saving' ? '…' : submitLabel}
         </button>
+        {problem && (
+          <p className="form-hint" role="status">
+            {problem === 'missing' ? 'Fill in all fields to enable Save.' : problem}
+          </p>
+        )}
         {editing && (
           <Link href={`/events/${eventId}`} className="form-cancel">
-            إلغاء
+            Cancel
           </Link>
         )}
       </form>

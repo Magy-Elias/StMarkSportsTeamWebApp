@@ -61,8 +61,8 @@ export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; 
                 type="button"
                 className="schedule-btn remove"
                 onClick={() => save(slots.filter((_, j) => j !== i))}
-                aria-label="حذف هذا الموعد"
-                title="حذف"
+                aria-label="Remove this date"
+                title="Remove this date"
               >
                 ×
               </button>
@@ -72,8 +72,8 @@ export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; 
                 type="button"
                 className="schedule-btn add"
                 onClick={() => save([...slots, emptyFormSlot()])}
-                aria-label="إضافة موعد آخر"
-                title="إضافة موعد آخر"
+                aria-label="Add another date"
+                title="Add another date"
               >
                 +
               </button>

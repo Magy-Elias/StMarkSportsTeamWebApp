@@ -31,7 +31,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       title="تعديل الحدث"
       fields={FORM1_FIELDS}
       dir="rtl"
-      submitLabel="حفظ التعديلات"
+      submitLabel="Save changes"
       eventId={id}
       initialValues={initialValues}
     />

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatTime, parseSchedule } from '@/lib/schedule';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
 import { createClient } from '@/lib/supabase/server';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -59,17 +60,28 @@ export default async function CalendarPage({
   const next = new Date(year, month + 1, 1);
 
   return (
-    <section>
+    <section className="page page-wide">
       <div className="cal-header">
-        <a href={`/calendar?year=${prev.getFullYear()}&month=${prev.getMonth()}`} className="chip">
-          ‹
-        </a>
         <h1>
-          {new Date(year, month).toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+          {new Date(year, month).toLocaleString('en-GB', { month: 'long', year: 'numeric' })}
         </h1>
-        <a href={`/calendar?year=${next.getFullYear()}&month=${next.getMonth()}`} className="chip">
-          ›
-        </a>
+        <div className="cal-nav">
+          <Link
+            href={`/calendar?year=${prev.getFullYear()}&month=${prev.getMonth()}`}
+            className="icon-btn"
+            aria-label="Previous month"
+          >
+            <ChevronLeftIcon />
+          </Link>
+          <Link href="/calendar" className="btn btn-ghost btn-sm">Today</Link>
+          <Link
+            href={`/calendar?year=${next.getFullYear()}&month=${next.getMonth()}`}
+            className="icon-btn"
+            aria-label="Next month"
+          >
+            <ChevronRightIcon />
+          </Link>
+        </div>
       </div>
 
       <div className="cal-legend">
@@ -83,8 +95,8 @@ export default async function CalendarPage({
         {WEEKDAYS.map((w) => (
           <div key={w} className="weekday">{w}</div>
         ))}
-        {cells.map((day) => {
-          if (!day) return <div key={`blank-${day}`} className="day blank" />;
+        {cells.map((day, i) => {
+          if (!day) return <div key={`blank-${i}`} className="day blank" />;
           const key = toKey(year, month, day);
           return (
             <div key={key} className={`day${key === todayKey ? ' today' : ''}`}>

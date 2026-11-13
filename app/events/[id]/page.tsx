@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { formatRange, parseSchedule } from '@/lib/schedule';
+import { EditIcon } from '@/components/icons';
 import type { Event } from '@/lib/types';
 
 // Fields shown on the detail page, in order. Add or remove entries here.
@@ -16,6 +17,12 @@ const DETAIL_FIELDS = [
   { key: 'games_time', label: 'الوقت المحدد للالعاب', format: (v: string) => v && `${v} ساعة` },
 ];
 
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'بانتظار الموافقة',
+  approved: 'تمت الموافقة',
+  completed: 'خطة الألعاب جاهزة',
+};
+
 const formatDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -25,19 +32,24 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const { data, error } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
 
-  if (error) return <p className="error">{error.message} <Link href="/">Back to calendar</Link></p>;
-  if (!data) return <p className="error">Event not found. <Link href="/">Back to calendar</Link></p>;
+  if (error) return <p className="error">{error.message} <Link href="/calendar">Back to calendar</Link></p>;
+  if (!data) return <p className="error">Event not found. <Link href="/calendar">Back to calendar</Link></p>;
 
   const event = data as unknown as Event;
   const schedule = parseSchedule(event.schedule);
 
   return (
     <article className="card" dir="rtl">
-      <Link href="/">→ الرجوع للتقويم</Link>
+      <div dir="ltr">
+        <Link href="/calendar" className="back-link">← Back</Link>
+      </div>
       <div className="detail-header">
-        <h1>{event.title}</h1>
-        <Link href={`/events/${event.id}/edit`} className="btn-edit">
-          تعديل
+        <div>
+          <h1>{event.title}</h1>
+          <span className={`status-badge ${event.status}`}>{STATUS_LABEL[event.status] ?? event.status}</span>
+        </div>
+        <Link href={`/events/${event.id}/edit`} className="btn btn-primary">
+          <EditIcon size={17} /> Edit
         </Link>
       </div>
       <dl className="details">

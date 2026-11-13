@@ -1,10 +1,16 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { IBM_Plex_Sans_Arabic, Inter } from 'next/font/google';
 import Sidebar from '@/components/sidebar';
 import { createClient } from '@/lib/supabase/server';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+// Arabic text (forms, event details) uses a matching Arabic typeface.
+const arabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-arabic',
+});
 
 export const metadata: Metadata = {
   title: 'ONE99 Sports Team',
@@ -26,7 +32,7 @@ export default async function RootLayout({
   const loggedIn = Boolean(data?.claims);
 
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${arabic.variable} h-full`}>
       <body className="min-h-full antialiased">
         <div className="flex h-screen">
           {/* Logged-out visitors (login page, public Form 1) don't get the menu. */}

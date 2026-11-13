@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { CalendarIcon, ClockIcon, FormIcon, GamesIcon, HomeIcon, LogoutIcon } from '@/components/icons';
 
 export default function Sidebar({ email }: { email: string | null }) {
   const pathname = usePathname();
@@ -13,11 +14,11 @@ export default function Sidebar({ email }: { email: string | null }) {
   const [open, setOpen] = useState(false);
 
   const nav = [
-    { href: '/', label: 'Home' },
-    { href: '/calendar', label: 'Calendar' },
-    { href: '/pending', label: 'Events Pending' },
-    { href: '/form-1', label: 'Form 1' },
-    { href: '/form-2', label: 'Form 2' },
+    { href: '/', label: 'Home', Icon: HomeIcon },
+    { href: '/calendar', label: 'Calendar', Icon: CalendarIcon },
+    { href: '/pending', label: 'Events Pending', Icon: ClockIcon },
+    { href: '/form-1', label: 'Form 1', Icon: FormIcon },
+    { href: '/form-2', label: 'Form 2', Icon: GamesIcon },
   ];
 
   // While the mobile menu is open: close it with Escape, and stop the page
@@ -72,6 +73,7 @@ export default function Sidebar({ email }: { email: string | null }) {
         <div className="sidebar-brand">
           <Link href="/" className="brand-link" aria-label="ONE99 Sports Team" onClick={() => setOpen(false)}>
             <img src="/logo.svg" alt="ONE99 Sports Team" className="sidebar-logo" />
+            <span className="brand-text">ONE99 <small>Sports Team</small></span>
           </Link>
           <button
             type="button"
@@ -91,15 +93,23 @@ export default function Sidebar({ email }: { email: string | null }) {
                 href={item.href}
                 className={`sidebar-link ${active ? 'active' : ''}`}
                 onClick={() => setOpen(false)}
+                aria-current={active ? 'page' : undefined}
               >
+                <item.Icon size={19} />
                 {item.label}
               </Link>
             );
           })}
         </nav>
         <div className="sidebar-account">
-          {email && <span className="sidebar-email" title={email}>{email}</span>}
+          {email && (
+            <div className="sidebar-user" title={email}>
+              <span className="sidebar-avatar" aria-hidden="true">{email[0]?.toUpperCase()}</span>
+              <span className="sidebar-email">{email}</span>
+            </div>
+          )}
           <button type="button" onClick={signOut} disabled={signingOut} className="sidebar-signout">
+            <LogoutIcon size={17} />
             {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
         </div>
