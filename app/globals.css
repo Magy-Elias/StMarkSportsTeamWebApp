@@ -436,6 +436,8 @@ main.no-sidebar { margin-left: 0; }
   font-size: 0.92rem;
   line-height: 1.6;
   color: var(--text);
+  direction: ltr;
+  text-align: left;
 }
 .form-info p { margin: 0 0 6px; }
 .form-info p:last-child { margin-bottom: 0; }
