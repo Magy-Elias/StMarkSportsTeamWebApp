@@ -468,14 +468,16 @@ main.no-sidebar { margin-left: 0; }
   overflow: hidden;
   mask-image: linear-gradient(
     to bottom,
-    rgb(0,0,0) 20%,
-    rgb(0,0,0) 80%,
+    transparent 0%,
+    rgb(255,255,255) 22%,
+    rgb(255,255,255) 78%,
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(
     to bottom,
-    rgb(0,0,0) 20%,
-    rgb(0,0,0) 80%,
+    transparent 0%,
+    rgb(255,255,255) 22%,
+    rgb(255,255,255) 78%,
     transparent 100%
   );
 }
@@ -491,14 +493,13 @@ main.no-sidebar { margin-left: 0; }
   font-size: 1.15rem;
   font-weight: 600;
   text-align: center;
-  color: var(--muted);
+  color: #9aa3b4;
   user-select: none;
 }
 .wheel-item.selected {
   color: var(--color-navy);
-  font-size: 1.35rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  text-shadow: 0 0 8px rgba(28,130,211,0.25);
 }
 .wheel-item:not(.selected):hover {
   color: var(--color-blue);
