@@ -8,7 +8,7 @@ const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 const PERIODS: string[] = ['AM', 'PM'];
 
 const ITEM_HEIGHT = 44; // px per wheel item
-const VISIBLE_ITEMS = 5; // how many items show at once
+const VISIBLE_ITEMS = 3; // how many items show at once (current + one before + one after)
 
 // A scrollable wheel-style picker (iOS clock-app style).
 // Scroll / click to pick an option; the center item is highlighted.

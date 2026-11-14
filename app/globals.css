@@ -443,11 +443,26 @@ main.no-sidebar { margin-left: 0; }
 /* ==========================================================================
    Clock-style wheel time picker (iPhone clock app style)
    ========================================================================== */
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 180px;
+  flex-wrap: wrap;
+}
+
 .time-wheels {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
+
 .time-separator {
   font-size: 1.1rem;
   color: var(--muted);
@@ -455,36 +470,43 @@ main.no-sidebar { margin-left: 0; }
 }
 .wheel-picker {
   position: relative;
-  width: 76px;
-  height: 220px;
+  width: 72px;
+  height: 132px;
   overflow: hidden;
   border-radius: 12px;
   background: #fff;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  display: inline-block;
 }
 .wheel-mask {
   position: relative;
+  height: 132px;
   overflow: hidden;
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgb(255,255,255) 22%,
-    rgb(255,255,255) 78%,
+    rgb(255,255,255) 30%,
+    rgb(255,255,255) 70%,
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgb(255,255,255) 22%,
-    rgb(255,255,255) 78%,
+    rgb(255,255,255) 30%,
+    rgb(255,255,255) 70%,
     transparent 100%
   );
 }
 .wheel-items {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  transition: transform 0.15s ease-out;
+  transition: transform 0.2s ease-out;
   will-change: transform;
 }
 .wheel-item {
@@ -504,4 +526,9 @@ main.no-sidebar { margin-left: 0; }
 .wheel-item:not(.selected):hover {
   color: var(--color-blue);
   cursor: pointer;
+}
+
+/* Extra space above the hint box when tall wheel pickers are above it */
+.form-info {
+  margin-top: 20px;
 }
