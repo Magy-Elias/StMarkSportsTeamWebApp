@@ -453,10 +453,30 @@ main.no-sidebar { margin-left: 0; }
 
 .schedule-row {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 8px;
   min-height: 180px;
   flex-wrap: wrap;
+}
+
+.schedule-date-row {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.schedule-date-row input[type="date"] {
+  width: 100%;
+  max-width: 260px;
+}
+
+.schedule-time-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .time-wheels {
@@ -561,17 +581,19 @@ main.no-sidebar { margin-left: 0; }
   .schedule-row {
     min-height: 160px;
     gap: 6px;
-    /* Keep wheels side by side like iPhone clock app */
-    flex-direction: row;
-    align-items: center;
+    /* Column layout: date on top, time wheels below */
+    flex-direction: column;
+    align-items: stretch;
     flex-wrap: wrap;
   }
 
-  .time-wheels {
+  .schedule-time-row {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: nowrap;
+    justify-content: center;
   }
 
   .time-separator {
@@ -601,7 +623,7 @@ main.no-sidebar { margin-left: 0; }
 
   .schedule-actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     margin-top: 6px;
     width: 100%;

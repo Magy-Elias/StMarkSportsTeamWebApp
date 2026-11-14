@@ -170,14 +170,20 @@ export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; 
     <div className="schedule">
       {slots.map((slot, i) => (
         <div key={i} className="schedule-row">
-          <input
-            type="date"
-            aria-label="التاريخ"
-            value={slot.date}
-            onChange={(e) => update(i, { date: e.target.value })}
-          />
-          <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
-          <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
+          {/* Line 1: date */}
+          <div className="schedule-date-row">
+            <input
+              type="date"
+              aria-label="التاريخ"
+              value={slot.date}
+              onChange={(e) => update(i, { date: e.target.value })}
+            />
+          </div>
+          {/* Line 2: time wheels (from → to) */}
+          <div className="schedule-time-row">
+            <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
+            <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
+          </div>
           {scheduleError && (
             <p className="schedule-error" role="alert">
               {scheduleError}
