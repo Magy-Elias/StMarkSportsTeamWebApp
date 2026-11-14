@@ -7,31 +7,8 @@ const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const PERIODS: string[] = ['AM', 'PM'];
 
-// All possible times formatted as "H:MM AM/PM" e.g. "7:00 AM", "7:01 AM", ... "12:59 PM"
-const ALL_TIMES: string[] = [];
-for (const h of HOURS) {
-  for (const m of MINUTES) {
-    for (const p of PERIODS) {
-      ALL_TIMES.push(`${h}:${m} ${p}`);
-    }
-  }
-}
-
 const ITEM_HEIGHT = 44; // px per wheel item
 const VISIBLE_ITEMS = 3; // how many items show at once (current + one before + one after)
-const DEFAULT_TIME = '9:00 AM';
-
-function formatTimeParts(p: TimeParts): string {
-  if (!p.hour || !p.minute) return DEFAULT_TIME;
-  return `${p.hour}:${p.minute} ${p.period}`;
-}
-
-function parseTime(timeStr: string): TimeParts {
-  // Format: "H:MM AM/PM" e.g. "7:00 AM", "12:59 PM"
-  const match = timeStr.match(/^(\d+):(\d{2})\s*(AM|PM)$/);
-  if (!match) return { hour: '', minute: '', period: 'AM' };
-  return { hour: match[1], minute: match[2], period: match[3] as 'AM' | 'PM' };
-}
 
 // A scrollable wheel-style picker (iOS clock-app style).
 // Scroll / click to pick an option; the center item is highlighted.
@@ -108,22 +85,33 @@ function WheelPicker({
   );
 }
 
-function SingleTimeWheel({ label, value, onChange }: { label: string; value: TimeParts; onChange: (v: TimeParts) => void }) {
-  const current = formatTimeParts(value);
-
-  const set = (timeStr: string) => {
-    onChange(parseTime(timeStr));
-  };
+function ClockTimePicker({ label, value, onChange }: { label: string; value: TimeParts; onChange: (v: TimeParts) => void }) {
+  const parts = value;
+  const set = (patch: Partial<TimeParts>) => onChange({ ...parts, ...patch });
 
   return (
     <div className="time-picker">
       <span className="time-label">{label}</span>
-      <div className="time-wheel-single" dir="ltr">
+      {/* Hour : minute AM/PM, each wheel rotates independently */}
+      <div className="time-wheels" dir="ltr">
         <WheelPicker
-          aria-label={`${label}: time`}
-          options={ALL_TIMES}
-          value={current}
-          onChange={set}
+          aria-label={`${label}: hour`}
+          options={HOURS}
+          value={parts.hour}
+          onChange={(v) => set({ hour: v })}
+        />
+        <span className="time-separator">:</span>
+        <WheelPicker
+          aria-label={`${label}: minute`}
+          options={MINUTES}
+          value={parts.minute}
+          onChange={(v) => set({ minute: v })}
+        />
+        <WheelPicker
+          aria-label={`${label}: period`}
+          options={PERIODS}
+          value={parts.period}
+          onChange={(v) => set({ period: v as TimeParts['period'] })}
         />
       </div>
     </div>
@@ -152,8 +140,8 @@ export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; 
             value={slot.date}
             onChange={(e) => update(i, { date: e.target.value })}
           />
-          <SingleTimeWheel label="من" value={slot.from} onChange={(from) => update(i, { from })} />
-          <SingleTimeWheel label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
+          <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
+          <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
           {scheduleError && (
             <p className="schedule-error" role="alert">
               {scheduleError}
