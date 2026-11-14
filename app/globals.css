@@ -425,3 +425,17 @@ main.no-sidebar { margin-left: 0; }
 /* Under a disabled Save button: what's still needed */
 .form-hint { margin: -6px 0 0; text-align: center; font-size: 0.88rem; color: var(--muted); }
 .optional { font-weight: 400; color: var(--muted); font-size: 0.85em; }
+
+/* Info/hint box shown in forms (e.g. contact details in Form 1) */
+.form-info {
+  background: var(--color-blue-tint);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+.form-info p { margin: 0 0 6px; }
+.form-info p:last-child { margin-bottom: 0; }

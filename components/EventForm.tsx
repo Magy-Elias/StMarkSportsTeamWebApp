@@ -30,6 +30,8 @@ type EventFormProps = {
   eventId?: string;
   /** Edit mode: the event's current values, to fill in the form. */
   initialValues?: Record<string, string>;
+  /** Optional info/hint box shown in the form and after saving. */
+  hint?: string;
 };
 
 export default function EventForm({
@@ -40,6 +42,7 @@ export default function EventForm({
   defaults = {},
   eventId,
   initialValues,
+  hint,
 }: EventFormProps) {
   const router = useRouter();
   const editing = Boolean(eventId);
@@ -158,6 +161,13 @@ export default function EventForm({
           </label>
           )
         ))}
+        {hint && (
+          <div className="form-info">
+            {hint.split('\n').map((line: string, i: number) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        )}
         <button type="submit" disabled={status.state === 'saving' || problem !== null}>
           {status.state === 'saving' ? '…' : submitLabel}
         </button>
@@ -183,6 +193,13 @@ export default function EventForm({
               </>
             )}
           </p>
+          {hint && (
+            <div className="form-info">
+              {hint.split('\n').map((line: string, i: number) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          )}
           <button
             type="button"
             onClick={() => {
