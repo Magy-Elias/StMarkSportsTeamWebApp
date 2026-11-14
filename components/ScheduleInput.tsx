@@ -1,11 +1,76 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { emptyFormSlot, type FormSlot, type TimeParts } from '@/lib/schedule';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const PERIODS: string[] = ['AM', 'PM'];
 
-function TimePicker({ label, value, onChange }: { label: string; value: TimeParts; onChange: (v: TimeParts) => void }) {
+const ITEM_HEIGHT = 44; // px per wheel item
+const VISIBLE_ITEMS = 5; // how many items show at once
+
+// A scrollable wheel-style picker (iOS clock-app style).
+// Scroll / click to pick an option; the center item is highlighted.
+function WheelPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const index = options.indexOf(value);
+
+  // Scroll into view when the value changes from outside.
+  useEffect(() => {
+    if (ref.current && index >= 0) {
+      const target = index * ITEM_HEIGHT - ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
+      ref.current.scrollTo({ top: target, behavior: 'smooth' });
+    }
+  }, [value, index]);
+
+  const commit = (i: number) => {
+    const clamped = Math.max(0, Math.min(i, options.length - 1));
+    const target = clamped * ITEM_HEIGHT - ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
+    setScrollY(target);
+    onChange(options[clamped]);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const step = e.deltaY > 0 ? 1 : -1;
+    commit(index + step);
+  };
+
+  return (
+    <div className="wheel-picker" onWheel={handleWheel} onTouchStart={(e) => e.preventDefault()}>
+      <div className="wheel-mask" style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS }}>
+        <div
+          ref={ref}
+          className="wheel-items"
+          style={{ transform: `translateY(-${scrollY}px)` }}
+        >
+          {options.map((opt, i) => (
+            <div
+              key={opt}
+              className={`wheel-item ${i === index ? 'selected' : ''}`}
+              style={{ height: ITEM_HEIGHT, lineHeight: `${ITEM_HEIGHT}px` }}
+              onClick={() => commit(i)}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClockTimePicker({ label, value, onChange }: { label: string; value: TimeParts; onChange: (v: TimeParts) => void }) {
   const parts = value;
   const set = (patch: Partial<TimeParts>) => onChange({ ...parts, ...patch });
 
@@ -13,24 +78,26 @@ function TimePicker({ label, value, onChange }: { label: string; value: TimePart
     <div className="time-picker">
       <span className="time-label">{label}</span>
       {/* Hour : minute AM/PM, always left-to-right */}
-      <div className="time-selects" dir="ltr">
-        <select aria-label={`${label}: hour`} value={parts.hour} onChange={(e) => set({ hour: e.target.value })}>
-          <option value="">--</option>
-          {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
-        </select>
-        <span>:</span>
-        <select aria-label={`${label}: minute`} value={parts.minute} onChange={(e) => set({ minute: e.target.value })}>
-          <option value="">--</option>
-          {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
-        <select
-          aria-label={`${label}: AM/PM`}
+      <div className="time-wheels" dir="ltr">
+        <WheelPicker
+          aria-label={`${label}: hour`}
+          options={HOURS}
+          value={parts.hour}
+          onChange={(v) => set({ hour: v })}
+        />
+        <span className="time-separator">:</span>
+        <WheelPicker
+          aria-label={`${label}: minute`}
+          options={MINUTES}
+          value={parts.minute}
+          onChange={(v) => set({ minute: v })}
+        />
+        <WheelPicker
+          aria-label={`${label}: period`}
+          options={PERIODS}
           value={parts.period}
-          onChange={(e) => set({ period: e.target.value as TimeParts['period'] })}
-        >
-          <option value="AM">AM</option>
-          <option value="PM">PM</option>
-        </select>
+          onChange={(v) => set({ period: v as TimeParts['period'] })}
+        />
       </div>
     </div>
   );
@@ -53,8 +120,8 @@ export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; 
             value={slot.date}
             onChange={(e) => update(i, { date: e.target.value })}
           />
-          <TimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
-          <TimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
+          <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
+          <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
           <div className="schedule-actions">
             {slots.length > 1 && (
               <button

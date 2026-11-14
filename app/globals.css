@@ -439,3 +439,68 @@ main.no-sidebar { margin-left: 0; }
 }
 .form-info p { margin: 0 0 6px; }
 .form-info p:last-child { margin-bottom: 0; }
+
+/* ==========================================================================
+   Clock-style wheel time picker (iPhone clock app style)
+   ========================================================================== */
+.time-wheels {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.time-separator {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin: 0 2px;
+}
+.wheel-picker {
+  position: relative;
+  width: 76px;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.wheel-mask {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0,0,0) 20%,
+    rgb(0,0,0) 80%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgb(0,0,0) 20%,
+    rgb(0,0,0) 80%,
+    transparent 100%
+  );
+}
+.wheel-items {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+.wheel-item {
+  height: 44px;
+  line-height: 44px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--muted);
+  user-select: none;
+}
+.wheel-item.selected {
+  color: var(--color-navy);
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(28,130,211,0.25);
+}
+.wheel-item:not(.selected):hover {
+  color: var(--color-blue);
+  cursor: pointer;
+}
