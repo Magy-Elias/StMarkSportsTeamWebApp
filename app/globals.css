@@ -549,6 +549,19 @@ main.no-sidebar { margin-left: 0; }
   cursor: pointer;
 }
 
+.schedule-error {
+  margin: 6px 0 0;
+  color: var(--danger);
+  background: var(--danger-tint);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  text-align: right;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Extra space above the hint box when tall wheel pickers are above it */
 .form-info {
   margin-top: 20px;

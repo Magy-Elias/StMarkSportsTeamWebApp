@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { emptyFormSlot, type FormSlot, type TimeParts } from '@/lib/schedule';
+import { emptyFormSlot, fromFormSlots, type FormSlot, type TimeParts } from '@/lib/schedule';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -134,8 +134,13 @@ function SingleTimeWheel({ label, value, onChange }: { label: string; value: Tim
 export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; onChange: (v: FormSlot[]) => void }) {
   const slots = value.length ? value : [emptyFormSlot()];
   const save = onChange;
-  const update = (i: number, patch: Partial<FormSlot>) =>
-    save(slots.map((s, j) => (j === i ? { ...s, ...patch } : s)));
+  const update = (i: number, patch: Partial<FormSlot>) => {
+    const next = slots.map((s, j) => (j === i ? { ...s, ...patch } : s));
+    save(next);
+  };
+
+  // Validate the schedule locally so the error can be shown right under the time field.
+  const { error: scheduleError } = fromFormSlots(slots);
 
   return (
     <div className="schedule">
@@ -149,6 +154,11 @@ export default function ScheduleInput({ value, onChange }: { value: FormSlot[]; 
           />
           <SingleTimeWheel label="من" value={slot.from} onChange={(from) => update(i, { from })} />
           <SingleTimeWheel label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
+          {scheduleError && (
+            <p className="schedule-error" role="alert">
+              {scheduleError}
+            </p>
+          )}
           <div className="schedule-actions">
             {slots.length > 1 && (
               <button

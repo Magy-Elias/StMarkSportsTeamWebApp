@@ -171,9 +171,9 @@ export default function EventForm({
         <button type="submit" disabled={status.state === 'saving' || problem !== null}>
           {status.state === 'saving' ? '…' : submitLabel}
         </button>
-        {problem && (
+        {problem === 'missing' && (
           <p className="form-hint" role="status">
-            {problem === 'missing' ? 'Fill in all fields to enable Save.' : problem}
+            Fill in all fields to enable Save.
           </p>
         )}
         {editing && (
