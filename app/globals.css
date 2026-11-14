@@ -441,7 +441,7 @@ main.no-sidebar { margin-left: 0; }
 .form-info p:last-child { margin-bottom: 0; }
 
 /* ==========================================================================
-   Clock-style wheel time picker (iPhone clock app style)
+   Single wheel time picker (hour:minute AM/PM in one wheel)
    ========================================================================== */
 .schedule {
   display: flex;
@@ -457,20 +457,15 @@ main.no-sidebar { margin-left: 0; }
   flex-wrap: wrap;
 }
 
-.time-wheels {
+.time-wheel-single {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.time-separator {
-  font-size: 1.1rem;
-  color: var(--muted);
-  margin: 0 2px;
-}
 .wheel-picker {
   position: relative;
-  width: 72px;
+  width: 150px;
   height: 132px;
   overflow: hidden;
   border-radius: 12px;
