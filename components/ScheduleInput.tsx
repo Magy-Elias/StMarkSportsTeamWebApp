@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { emptyFormSlot, type FormSlot, type TimeParts } from '@/lib/schedule';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
@@ -19,6 +19,19 @@ for (const h of HOURS) {
 
 const ITEM_HEIGHT = 44; // px per wheel item
 const VISIBLE_ITEMS = 3; // how many items show at once (current + one before + one after)
+const DEFAULT_TIME = '9:00 AM';
+
+function formatTimeParts(p: TimeParts): string {
+  if (!p.hour || !p.minute) return DEFAULT_TIME;
+  return `${p.hour}:${p.minute} ${p.period}`;
+}
+
+function parseTime(timeStr: string): TimeParts {
+  // Format: "H:MM AM/PM" e.g. "7:00 AM", "12:59 PM"
+  const match = timeStr.match(/^(\d+):(\d{2})\s*(AM|PM)$/);
+  if (!match) return { hour: '', minute: '', period: 'AM' };
+  return { hour: match[1], minute: match[2], period: match[3] as 'AM' | 'PM' };
+}
 
 // A scrollable wheel-style picker (iOS clock-app style).
 // Scroll / click to pick an option; the center item is highlighted.
@@ -32,29 +45,44 @@ function WheelPicker({
   onChange: (v: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const scrollYRef = useRef(0);
   const [scrollY, setScrollY] = useState(0);
   const index = options.indexOf(value);
+  const isUserScrolling = useRef(false);
 
-  // Scroll into view when the value changes from outside.
+  // Scroll into view when the value changes from outside (not from user scrolling).
   useEffect(() => {
-    if (ref.current && index >= 0) {
-      const target = index * ITEM_HEIGHT - ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
-      ref.current.scrollTo({ top: target, behavior: 'smooth' });
-    }
+    if (isUserScrolling.current || index < 0 || !ref.current) return;
+    const target = index * ITEM_HEIGHT - ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
+    scrollYRef.current = target;
+    setScrollY(target);
   }, [value, index]);
 
-  const commit = (i: number) => {
-    const clamped = Math.max(0, Math.min(i, options.length - 1));
-    const target = clamped * ITEM_HEIGHT - ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
-    setScrollY(target);
-    onChange(options[clamped]);
-  };
+  const commit = useCallback(
+    (i: number) => {
+      const clamped = Math.max(0, Math.min(i, options.length - 1));
+      const target = clamped * ITEM_HEIGHT - ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
+      scrollYRef.current = target;
+      setScrollY(target);
+      isUserScrolling.current = true;
+      onChange(options[clamped]);
+      // Reset user scrolling flag after the animation frame
+      requestAnimationFrame(() => {
+        isUserScrolling.current = false;
+      });
+    },
+    [options.length, onChange]
+  );
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const step = e.deltaY > 0 ? 1 : -1;
-    commit(index + step);
-  };
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      if (index < 0) return;
+      const step = e.deltaY > 0 ? 1 : -1;
+      commit(index + step);
+    },
+    [index, commit]
+  );
 
   return (
     <div className="wheel-picker" onWheel={handleWheel} onTouchStart={(e) => e.preventDefault()}>
@@ -80,16 +108,8 @@ function WheelPicker({
   );
 }
 
-function parseTime(timeStr: string): TimeParts {
-  // Format: "H:MM AM/PM" e.g. "7:00 AM", "12:59 PM"
-  const match = timeStr.match(/^(\d+):(\d{2})\s*(AM|PM)$/);
-  if (!match) return { hour: '', minute: '', period: 'AM' };
-  return { hour: match[1], minute: match[2], period: match[3] as 'AM' | 'PM' };
-}
-
 function SingleTimeWheel({ label, value, onChange }: { label: string; value: TimeParts; onChange: (v: TimeParts) => void }) {
-  const parts = value;
-  const current = `${parts.hour}:${parts.minute} ${parts.period}`;
+  const current = formatTimeParts(value);
 
   const set = (timeStr: string) => {
     onChange(parseTime(timeStr));

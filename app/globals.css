@@ -465,7 +465,7 @@ main.no-sidebar { margin-left: 0; }
 
 .wheel-picker {
   position: relative;
-  width: 150px;
+  width: 170px;
   height: 132px;
   overflow: hidden;
   border-radius: 12px;
@@ -474,6 +474,26 @@ main.no-sidebar { margin-left: 0; }
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
   display: inline-block;
+}
+.wheel-picker::before {
+  content: '';
+  position: absolute;
+  top: 33.33%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e2e8f0;
+  z-index: 5;
+}
+.wheel-picker::after {
+  content: '';
+  position: absolute;
+  top: 66.66%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e2e8f0;
+  z-index: 5;
 }
 .wheel-mask {
   position: relative;
@@ -507,16 +527,22 @@ main.no-sidebar { margin-left: 0; }
 .wheel-item {
   height: 44px;
   line-height: 44px;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
   text-align: center;
   color: #9aa3b4;
   user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 .wheel-item.selected {
   color: var(--color-navy);
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-weight: 700;
+  text-shadow: 0 0 10px rgba(28,130,211,0.2);
 }
 .wheel-item:not(.selected):hover {
   color: var(--color-blue);
