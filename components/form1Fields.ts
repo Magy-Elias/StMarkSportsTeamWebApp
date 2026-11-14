@@ -6,6 +6,7 @@ export const FORM1_FIELDS = [
   { name: 'title', label: 'اسم الخدمة او الاجتماع', required: true },
   { name: 'responsible_person', label: 'الشخص المسؤول', required: true },
   { name: 'phone', label: 'رقم التليفون', type: 'tel' as const, required: true },
+  { name: 'email', label: 'البريد الإلكتروني', type: 'email' as const, required: true },
   { name: 'day_name', label: 'اسم اليوم', required: true },
   { name: 'goal', label: 'الهدف', type: 'textarea' as const, required: true },
   { name: 'event_date', label: 'تاريخ', type: 'date' as const, required: true },

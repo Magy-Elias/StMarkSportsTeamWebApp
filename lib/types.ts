@@ -16,6 +16,7 @@ export type Event = {
   title: string;
   responsible_person?: string | null;
   phone?: string | null;
+  email?: string | null;
   day_name?: string | null;
   goal?: string | null;
   event_date: string;

@@ -8,7 +8,7 @@ import { fromFormSlots, toFormSlots, type FormSlot } from '@/lib/schedule';
 import { supabase } from '@/lib/supabase/client';
 
 // 'schedule' = rows of date + from + to (see components/ScheduleInput.tsx).
-export type FieldType = 'text' | 'date' | 'time' | 'textarea' | 'select' | 'number' | 'tel' | 'schedule';
+export type FieldType = 'text' | 'date' | 'time' | 'textarea' | 'select' | 'number' | 'tel' | 'email' | 'schedule';
 
 export type Field = {
   name: string;
