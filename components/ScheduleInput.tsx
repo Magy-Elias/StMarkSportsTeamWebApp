@@ -61,8 +61,44 @@ function WheelPicker({
     [index, commit]
   );
 
+  // Touch drag support for mobile (swipe up/down to scroll the wheel)
+  const dragStartY = useRef(0);
+  const dragStartScroll = useRef(0);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      dragStartY.current = e.touches[0].clientY;
+      dragStartScroll.current = scrollY;
+    },
+    [scrollY]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault();
+      const delta = dragStartY.current - e.touches[0].clientY;
+      const newScroll = dragStartScroll.current + delta;
+      // Snap to nearest item
+      const targetIndex = Math.round(newScroll / ITEM_HEIGHT);
+      commit(targetIndex);
+    },
+    [commit]
+  );
+
   return (
-    <div className="wheel-picker" onWheel={handleWheel} onTouchStart={(e) => e.preventDefault()}>
+    <div
+      className="wheel-picker"
+      onWheel={handleWheel}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        handleTouchStart(e);
+      }}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={() => {
+        dragStartY.current = 0;
+        dragStartScroll.current = 0;
+      }}
+    >
       <div className="wheel-mask" style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS }}>
         <div
           ref={ref}

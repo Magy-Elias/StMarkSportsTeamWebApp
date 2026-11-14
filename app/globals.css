@@ -556,6 +556,83 @@ main.no-sidebar { margin-left: 0; }
   cursor: pointer;
 }
 
+/* Mobile: make wheel picker touch-friendly and fit small screens */
+@media (max-width: 768px) {
+  .schedule-row {
+    min-height: 160px;
+    gap: 6px;
+    /* Keep wheels side by side like iPhone clock app */
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .time-wheels {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .time-separator {
+    margin: 0 4px;
+    white-space: nowrap;
+  }
+
+  .wheel-picker {
+    width: 70px;
+    height: 132px;
+  }
+
+  .wheel-mask {
+    height: 132px;
+  }
+
+  .wheel-item {
+    height: 44px;
+    line-height: 44px;
+    font-size: 1.1rem;
+    padding: 0 4px;
+  }
+
+  .wheel-item.selected {
+    font-size: 1.6rem;
+  }
+
+  .schedule-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+    width: 100%;
+  }
+
+  .schedule-btn {
+    padding: 6px 12px;
+    font-size: 1rem;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+  .wheel-picker {
+    width: 64px;
+    height: 132px;
+  }
+
+  .wheel-mask {
+    height: 132px;
+  }
+
+  .wheel-item {
+    font-size: 1rem;
+  }
+
+  .wheel-item.selected {
+    font-size: 1.5rem;
+  }
+}
+
 .schedule-error {
   margin: 6px 0 0;
   color: var(--danger);
@@ -567,6 +644,34 @@ main.no-sidebar { margin-left: 0; }
   text-align: right;
   width: 100%;
   box-sizing: border-box;
+}
+
+.schedule-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.schedule-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-navy);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.schedule-btn:hover {
+  background: var(--color-blue-tint);
+  border-color: var(--color-blue);
+}
+.schedule-btn.remove {
+  color: var(--danger);
 }
 
 /* Extra space above the hint box when tall wheel pickers are above it */
