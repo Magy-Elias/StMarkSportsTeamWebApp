@@ -62,16 +62,6 @@ function Form2Content() {
   const addGame = () => setPlan((p) => ({ ...p, games: [...p.games, emptyGame()] }));
   const removeGame = (i: number) => setPlan((p) => ({ ...p, games: p.games.filter((_, j) => j !== i) }));
 
-  // Save stays disabled until everything is filled in, except each game's
-  // description and tools/material, which are optional.
-  const filled = (v: string) => v.trim() !== '';
-  const complete =
-    Boolean(eventId) &&
-    filled(plan.leader) &&
-    filled(plan.co_leader) &&
-    plan.games.length > 0 &&
-    plan.games.every((g) => filled(g.leader) && filled(g.name));
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ state: 'saving' as const, message: null });
@@ -99,10 +89,9 @@ function Form2Content() {
       <h1>Form 2</h1>
       <form onSubmit={onSubmit} className="form">
         <label>
-          <span>Event *</span>
+          <span>Event</span>
           <select
             value={eventId}
-            required
             onChange={(e) => {
               setStatus({ state: 'idle' as const, message: null });
               updateSearchParams(e.target.value ? { event: e.target.value } : {});
@@ -118,12 +107,12 @@ function Form2Content() {
         {eventId && (
           <>
             <label>
-              <span>Leader *</span>
-              <input value={plan.leader} onChange={set('leader')} required />
+              <span>Leader</span>
+              <input value={plan.leader} onChange={set('leader')} />
             </label>
             <label>
-              <span>Co-Leader *</span>
-              <input value={plan.co_leader} onChange={set('co_leader')} required />
+              <span>Co-Leader</span>
+              <input value={plan.co_leader} onChange={set('co_leader')} />
             </label>
 
             <div className="games-list">
@@ -131,12 +120,12 @@ function Form2Content() {
                 <fieldset key={i}>
                   <legend>Game {i + 1}</legend>
                   <label>
-                    <span>Game Leader *</span>
-                    <input value={g.leader} onChange={setGame(i, 'leader')} required />
+                    <span>Game Leader</span>
+                    <input value={g.leader} onChange={setGame(i, 'leader')} />
                   </label>
                   <label>
-                    <span>Game Name *</span>
-                    <input value={g.name} onChange={setGame(i, 'name')} required />
+                    <span>Game Name</span>
+                    <input value={g.name} onChange={setGame(i, 'name')} />
                   </label>
                   <label>
                     <span>Game Description <small className="optional">(optional)</small></span>
@@ -154,14 +143,9 @@ function Form2Content() {
               <button type="button" className="secondary" onClick={addGame}>+ Add another game</button>
             </div>
 
-            <button type="submit" disabled={status.state === 'saving' || !complete}>
+            <button type="submit" disabled={status.state === 'saving'}>
               {status.state === 'saving' ? 'Saving…' : 'Save'}
             </button>
-            {!complete && (
-              <p className="form-hint" role="status">
-                Fill in all fields marked * to enable Save.
-              </p>
-            )}
           </>
         )}
       </form>
