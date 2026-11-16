@@ -26,3 +26,9 @@ export const FORM1_FIELDS = [
   // Optional free-text notes.
   { name: 'remarks', label: 'ملاحظات', type: 'textarea' as const },
 ] satisfies Field[];
+
+// Contact details shown at the bottom of Form 1 and on the "submitted" page.
+export const FORM1_CONTACT = `For more details:
+Contact with 
+Mina Sadek: +971 58 162 4410
+Peter Naguib: +971 55 607 2801`;

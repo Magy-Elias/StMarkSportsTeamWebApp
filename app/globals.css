@@ -618,3 +618,20 @@ main.no-sidebar { margin-left: 0; }
   .dp { max-width: none; }
   .dp-popup { width: min(296px, calc(100vw - 48px)); }
 }
+
+/* Form 1 → "submitted" confirmation page (like Google Forms) */
+.submitted-card { max-width: 560px; text-align: center; padding: 40px 32px; margin-top: 24px; }
+.submitted-icon {
+  display: inline-grid; place-items: center;
+  width: 72px; height: 72px; margin-bottom: 18px; border-radius: 50%;
+  background: var(--success-tint); color: var(--success);
+  box-shadow: 0 0 0 8px rgba(15, 138, 95, 0.06);
+}
+.submitted-card > .submitted-text > h1 { border: none; padding: 0; margin: 0 0 10px; font-size: 1.55rem; }
+.submitted-text p { font-size: 1.05rem; margin: 0 0 6px; }
+.submitted-card .form-info { margin: 22px auto 0; max-width: 360px; text-align: left; }
+.submitted-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
+@media (max-width: 768px) {
+  .submitted-card { padding: 28px 18px; margin-top: 8px; }
+  .submitted-actions .btn { flex: 1 1 100%; }
+}

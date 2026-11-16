@@ -48,8 +48,10 @@ type EventFormProps = {
   eventId?: string;
   /** Edit mode: the event's current values, to fill in the form. */
   initialValues?: Record<string, string>;
-  /** Optional info/hint box shown in the form and after saving. */
+  /** Optional info/hint box shown in the form. */
   hint?: string;
+  /** New events: page to go to after saving (gets ?id=<new event id>). */
+  submittedPath?: string;
 };
 
 export default function EventForm({
@@ -61,6 +63,7 @@ export default function EventForm({
   eventId,
   initialValues,
   hint,
+  submittedPath,
 }: EventFormProps) {
   const router = useRouter();
   const editing = Boolean(eventId);
@@ -163,11 +166,15 @@ export default function EventForm({
     // visitors who aren't logged in are allowed to add events but not read them.
     const id = crypto.randomUUID();
     const { error } = await supabase.from('events').insert({ ...defaults, ...fieldValues, id });
-    if (error) setStatus({ state: 'error', message: `Could not save: ${error.message}`, id: '' });
-    else {
-      setStatus({ state: 'saved', message: null, id });
-      reset();
+    if (error) return setStatus({ state: 'error', message: `Could not save: ${error.message}`, id: '' });
+    if (submittedPath) {
+      // Like Google Forms: leave the form for a confirmation page. replace() so
+      // the browser's Back button doesn't return to the submitted form.
+      router.replace(`${submittedPath}?id=${id}`);
+      return;
     }
+    setStatus({ state: 'saved', message: null, id });
+    reset();
   };
 
   return (
