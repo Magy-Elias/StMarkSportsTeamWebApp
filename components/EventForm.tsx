@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import DatePicker from '@/components/DatePicker';
 import ScheduleInput from '@/components/ScheduleInput';
 import { fromFormSlots, toFormSlots, type FormSlot } from '@/lib/schedule';
 import { supabase } from '@/lib/supabase/client';
@@ -18,7 +19,24 @@ export type Field = {
   options?: string[];
   min?: number;
   suffix?: string;
+  /** Date fields: earliest allowed date is today + this many days. */
+  minDaysAhead?: number;
+  /** Small note shown under the field. */
+  hint?: string;
+  /** Schedule fields: rows can't be before the date in this other field. */
+  minDateFrom?: string;
 };
+
+// Local calendar dates as "YYYY-MM-DD" (the browser's own day, not UTC).
+const toISODate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return toISODate(d);
+};
+
+const TOO_SOON = 'يجب أن يكون تاريخ الحدث بعد أسبوعين على الأقل من اليوم.';
 
 type EventFormProps = {
   title: string;
@@ -65,6 +83,30 @@ export default function EventForm({
     message: null,
     id: '',
   });
+  // Earliest allowed dates for fields with `minDaysAhead`. Worked out in the
+  // browser (after first render) so it uses the visitor's own "today".
+  const [minDates, setMinDates] = useState<Record<string, string>>({});
+  useEffect(() => {
+    setMinDates(
+      Object.fromEntries(fields.filter((f) => f.minDaysAhead != null).map((f) => [f.name, addDays(f.minDaysAhead ?? 0)])),
+    );
+  }, [fields]);
+  // When editing, the event's current date stays allowed even if it's now
+  // less than the minimum away; only a newly picked date must meet the rule.
+  const dateMin = (f: Field) => {
+    const min = minDates[f.name];
+    const original = editing ? initialValues?.[f.name] : undefined;
+    if (!min) return undefined;
+    return original && original < min ? original : min;
+  };
+  const tooSoon = (f: Field) => {
+    const v = values[f.name] ?? '';
+    const min = minDates[f.name];
+    if (!v || !min || v >= min) return false;
+    return !(editing && v === initialValues?.[f.name]);
+  };
+  const scheduleMin = (f: Field) => (f.minDateFrom ? values[f.minDateFrom] || undefined : undefined);
+
   // Visitors who aren't logged in can submit, but can't open event pages.
   const [loggedIn, setLoggedIn] = useState(false);
   useEffect(() => {
@@ -76,11 +118,13 @@ export default function EventForm({
   const problem = (() => {
     for (const f of fields) {
       if (f.type === 'schedule') {
-        const { schedule, error } = fromFormSlots(schedules[f.name] ?? []);
+        const { schedule, error } = fromFormSlots(schedules[f.name] ?? [], scheduleMin(f));
         if (error) return error;
         if (f.required && schedule.length === 0) return 'missing';
       } else if (f.required && !(values[f.name] ?? '').trim()) {
         return 'missing';
+      } else if (tooSoon(f)) {
+        return TOO_SOON;
       }
     }
     return null;
@@ -96,11 +140,12 @@ export default function EventForm({
     const fieldValues: Record<string, unknown> = {};
     for (const f of fields) {
       if (f.type === 'schedule') {
-        const { schedule, error } = fromFormSlots(schedules[f.name] ?? []);
+        const { schedule, error } = fromFormSlots(schedules[f.name] ?? [], scheduleMin(f));
         if (error) return setStatus({ state: 'error', message: error, id: '' });
         fieldValues[f.name] = schedule;
         continue;
       }
+      if (tooSoon(f)) return setStatus({ state: 'error', message: TOO_SOON, id: '' });
       const v = values[f.name];
       fieldValues[f.name] = v === '' ? null : f.type === 'number' ? Number(v) : v;
     }
@@ -138,11 +183,30 @@ export default function EventForm({
               <ScheduleInput
                 value={schedules[f.name] ?? []}
                 onChange={(rows) => setSchedules((s) => ({ ...s, [f.name]: rows }))}
+                minDate={scheduleMin(f)}
               />
             </fieldset>
+          ) : f.type === 'date' ? (
+            // Our own calendar (not the browser's), so it isn't wrapped in a <label>:
+            // clicks inside the calendar would otherwise re-trigger the open button.
+            <div key={f.name} className="form-field">
+              <span>{f.label}{f.required && ' *'}</span>
+              <DatePicker
+                name={f.name}
+                label={f.label}
+                value={values[f.name] ?? ''}
+                onChange={(v) => setValues((s) => ({ ...s, [f.name]: v }))}
+                min={dateMin(f)}
+                invalid={tooSoon(f)}
+              />
+              {f.hint && <small className={`field-hint${tooSoon(f) ? ' is-error' : ''}`}>{f.hint}</small>}
+            </div>
           ) : (
           <label key={f.name}>
-            <span>{f.label}{f.required && ' *'}</span>
+            <span>
+              {f.label}
+              {f.required ? ' *' : <small className="optional"> (اختياري)</small>}
+            </span>
             {f.type === 'textarea' ? (
               <textarea name={f.name} value={values[f.name]} onChange={onChange} required={f.required} rows={4} />
             ) : f.type === 'select' ? (
@@ -154,10 +218,18 @@ export default function EventForm({
               </select>
             ) : (
               <div>
-                <input type={f.type ?? 'text'} name={f.name} value={values[f.name]} onChange={onChange} required={f.required} min={f.min} />
+                <input
+                  type={f.type ?? 'text'}
+                  name={f.name}
+                  value={values[f.name]}
+                  onChange={onChange}
+                  required={f.required}
+                  min={f.min}
+                />
                 {f.suffix && <span className="suffix">{f.suffix}</span>}
               </div>
             )}
+            {f.hint && <small className="field-hint">{f.hint}</small>}
           </label>
           )
         ))}

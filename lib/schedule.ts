@@ -67,10 +67,11 @@ export function toFormSlots(value: unknown): FormSlot[] {
 
 /**
  * Form rows -> schedule to save. Completely empty rows are skipped.
- * Returns an error message (Arabic, shown in Form 1) if a row is incomplete
- * or its end time isn't after its start time.
+ * Returns an error message (Arabic, shown in Form 1) if a row is incomplete,
+ * its end time isn't after its start time, or its date is before `minDate`
+ * (the event's main date).
  */
-export function fromFormSlots(rows: FormSlot[]): { schedule: ScheduleSlot[]; error: string | null } {
+export function fromFormSlots(rows: FormSlot[], minDate?: string): { schedule: ScheduleSlot[]; error: string | null } {
   const schedule: ScheduleSlot[] = [];
   for (const [i, row] of rows.entries()) {
     if (!row.date && partsEmpty(row.from) && partsEmpty(row.to)) continue;
@@ -78,6 +79,7 @@ export function fromFormSlots(rows: FormSlot[]): { schedule: ScheduleSlot[]; err
     const to = fromParts(row.to);
     const n = rows.length > 1 ? ` (الموعد ${i + 1})` : '';
     if (!row.date || !from || !to) return { schedule, error: `من فضلك اختر التاريخ ووقت البداية والنهاية${n}.` };
+    if (minDate && row.date < minDate) return { schedule, error: `تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث${n}.` };
     if (to <= from) return { schedule, error: `وقت النهاية يجب أن يكون بعد وقت البداية${n}.` };
     schedule.push({ date: row.date, from, to });
   }

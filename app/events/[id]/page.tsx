@@ -13,6 +13,7 @@ const DETAIL_FIELDS = [
   { key: 'goal', label: 'الهدف' },
   { key: 'participants_count', label: 'عدد المشاركين' },
   { key: 'location', label: 'المكان' },
+  { key: 'remarks', label: 'ملاحظات' },
   // Older events saved before the date/time rows: number of hours.
   { key: 'games_time', label: 'الوقت المحدد للالعاب', format: (v: string) => v && `${v} ساعة` },
 ];
