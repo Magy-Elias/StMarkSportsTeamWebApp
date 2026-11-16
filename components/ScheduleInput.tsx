@@ -51,7 +51,7 @@ function Wheel({
       const node = child as HTMLElement;
       const d = (k * ITEM - top) / ITEM; // 0 = in the middle band
       const a = Math.min(Math.abs(d), 2.6);
-      node.style.transform = `perspective(260px) rotateX(${Math.max(-70, Math.min(70, -d * 22))}deg)`;
+      node.style.transform = `perspective(600px) rotateX(${Math.max(-70, Math.min(70, -d * 22))}deg)`;
       node.style.opacity = String(1 - a * 0.32);
       node.dataset.center = Math.abs(d) < 0.5 ? 'true' : 'false';
     });

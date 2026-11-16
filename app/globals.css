@@ -635,3 +635,20 @@ main.no-sidebar { margin-left: 0; }
   .submitted-card { padding: 28px 18px; margin-top: 8px; }
   .submitted-actions .btn { flex: 1 1 100%; }
 }
+
+/* Wheels move up/down only: never let a column slide sideways (on iPhone a
+   column could scroll horizontally because tilted rows drew slightly wider). */
+.wheel { overflow-x: hidden; touch-action: pan-y; }
+.wheel-item { width: 100%; white-space: nowrap; overflow: hidden; }
+
+/* Space between the "من" and "إلى" boxes. */
+.schedule-time-row { gap: 32px; }
+@media (max-width: 768px) {
+  .schedule-time-row { gap: 24px; }
+}
+@media (max-width: 400px) {
+  .schedule-time-row { gap: 14px; }
+}
+@media (max-width: 380px) {
+  .schedule-time-row { gap: 8px; }
+}
