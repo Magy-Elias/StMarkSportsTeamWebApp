@@ -190,11 +190,11 @@ export default function EventForm({
   return (
     <section className="card" dir={dir}>
       <div className="form-header">
-        {/* dir="auto": English titles (e.g. "Form 1") align left, Arabic ones right. */}
-        <h1 dir="auto">{title}</h1>
         {logo && (
           <img src={logo} alt="Logo" className="form-logo" />
         )}
+        {/* dir="auto": English titles (e.g. "Form 1") align left, Arabic ones right. */}
+        <h1 dir="auto">{title}</h1>
       </div>
       <form onSubmit={onSubmit} className="form">
         {fields.map((f) => (
