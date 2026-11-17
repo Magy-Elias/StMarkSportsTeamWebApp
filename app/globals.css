@@ -566,11 +566,13 @@ main.no-sidebar { margin-left: 0; }
 }
 .logos-row {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
   width: 100%;
-  max-width: 320px;
+  max-width: 480px;
+  direction: ltr;
 }
 .form-logo {
   width: 44px;
