@@ -569,14 +569,14 @@ main.no-sidebar { margin-left: 0; }
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 30px;
   width: 100%;
-  max-width: 480px;
+  max-width: 640px;
   direction: ltr;
 }
 .form-logo {
-  width: 44px;
-  height: 44px;
+  width: 72px;
+  height: 72px;
   flex-shrink: 0;
 }
 
