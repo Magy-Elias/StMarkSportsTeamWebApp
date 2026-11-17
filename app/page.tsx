@@ -4,7 +4,7 @@ import { ArrowIcon, CalendarIcon, ClockIcon, FormIcon, GamesIcon } from '@/compo
 const SECTIONS = [
   { href: '/calendar', title: 'Calendar', text: 'See approved events by month.', Icon: CalendarIcon },
   { href: '/pending', title: 'Events Pending', text: 'Review and approve new events.', Icon: ClockIcon },
-  { href: '/form-1', title: 'Form 1', text: 'Create a new event.', Icon: FormIcon },
+  { href: '/event-registration', title: 'Event Registration', text: 'Create a new event.', Icon: FormIcon },
   { href: '/form-2', title: 'Form 2', text: 'Add the games plan for an event.', Icon: GamesIcon },
 ];
 

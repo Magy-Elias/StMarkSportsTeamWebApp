@@ -1,6 +1,6 @@
 import type { Field } from '@/components/EventForm';
 
-// Form 1 fields, in the order they appear: used to add a new event (/form-1)
+// Form 1 fields, in the order they appear: used to add a new event (/event-registration)
 // and to edit one (/events/[id]/edit).
 // All are required except remarks: the save button stays disabled until every
 // required field is filled.

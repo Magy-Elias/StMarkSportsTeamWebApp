@@ -87,7 +87,7 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
         <p className="muted login-footer">
-          Want to submit a new event? <Link href="/form-1">Open Form 1</Link>, no login needed.
+          Want to submit a new event? <Link href="/event-registration">Open Event Registration</Link>, no login needed.
         </p>
       </section>
     </div>

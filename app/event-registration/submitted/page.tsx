@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = { title: 'Event submitted · ONE99 Sports Team' };
 
-// Shown after Form 1 is saved (like Google Forms' "Your response has been
-// recorded"). Public, like Form 1 itself: /form-1/* needs no login.
+// Shown after Event Registration is saved (like Google Forms' "Your response has been
+// recorded"). Public, like Event Registration itself: /event-registration/* needs no login.
 export default async function SubmittedPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const { id } = await searchParams;
   const supabase = await createClient();
@@ -33,7 +33,7 @@ export default async function SubmittedPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="submitted-actions">
-        <Link href="/form-1" className="btn btn-primary">Submit another event</Link>
+        <Link href="/event-registration" className="btn btn-primary">Submit another event</Link>
         {loggedIn && id && (
           <Link href={`/events/${id}`} className="btn btn-ghost">View event</Link>
         )}

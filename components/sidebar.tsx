@@ -17,7 +17,7 @@ export default function Sidebar({ email }: { email: string | null }) {
     { href: '/', label: 'Home', Icon: HomeIcon },
     { href: '/calendar', label: 'Calendar', Icon: CalendarIcon },
     { href: '/pending', label: 'Events Pending', Icon: ClockIcon },
-    { href: '/form-1', label: 'Form 1', Icon: FormIcon },
+    { href: '/event-registration', label: 'Event Registration', Icon: FormIcon },
     { href: '/form-2', label: 'Form 2', Icon: GamesIcon },
   ];
 

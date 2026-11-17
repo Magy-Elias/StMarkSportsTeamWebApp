@@ -3,18 +3,18 @@
 import EventForm from '@/components/EventForm';
 import { FORM1_CONTACT, FORM1_FIELDS } from '@/components/form1Fields';
 
-export default function Form1() {
+export default function EventRegistration() {
   return (
     <EventForm
-      title="Form 1"
+      title="Event Registration"
       fields={FORM1_FIELDS}
       dir="rtl"
       submitLabel="Save"
       defaults={{ status: 'pending' }}
       hint={FORM1_CONTACT}
       logoLeft="/logo.svg"
-      logoRight="/logo.svg"
-      submittedPath="/form-1/submitted"
+      logoRight="/st-mark-logo.svg"
+      submittedPath="/event-registration/submitted"
     />
   );
 }
