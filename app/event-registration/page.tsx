@@ -13,7 +13,7 @@ export default function EventRegistration() {
       defaults={{ status: 'pending' }}
       hint={FORM1_CONTACT}
       logoLeft="/logo.svg"
-      logoRight="/st-mark-logo.svg"
+      logoRight="/st-mark-logo.png"
       submittedPath="/event-registration/submitted"
     />
   );
