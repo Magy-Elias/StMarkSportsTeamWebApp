@@ -652,3 +652,44 @@ main.no-sidebar { margin-left: 0; }
 @media (max-width: 380px) {
   .schedule-time-row { gap: 8px; }
 }
+
+/* ==========================================================================
+   Decline: red buttons, "Declined" badge/card, message note, pop-up box
+   ========================================================================== */
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #8F1C13; color: #fff; }
+.btn-danger-ghost { background: #fff; color: var(--danger); border-color: #F1C4C0; }
+.btn-danger-ghost:hover:not(:disabled) { background: var(--danger-tint); color: #8F1C13; border-color: #E8A39C; }
+
+.status-badge.declined { background: var(--danger-tint); color: var(--danger); }
+.pending-card.is-declined { border-inline-start-color: var(--danger); }
+.decline-note {
+  margin: 0 0 14px; padding: 10px 14px;
+  background: var(--danger-tint); color: #7A1A12;
+  border-radius: var(--radius-sm); font-size: 0.93rem; white-space: pre-wrap;
+}
+.detail-header + .decline-note { margin-top: 14px; }
+
+.modal {
+  width: min(480px, calc(100vw - 32px)); padding: 0; margin: auto;
+  border: none; border-radius: 16px; box-shadow: var(--shadow-lg); color: var(--text);
+}
+.modal::backdrop { background: rgba(7, 22, 65, 0.45); }
+.modal-body { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
+.modal-body h2 { margin: 0; }
+.modal-subtitle { margin: -8px 0 0; }
+.modal-body label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; }
+.modal-body textarea {
+  font: inherit; width: 100%; padding: 10px 12px; resize: vertical;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+}
+.modal-body textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus); }
+.modal-body .error { margin: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 480px) {
+  .modal-actions .btn { flex: 1; }
+}
+
+/* Calendar: completed events (approved, date passed) are faded. */
+.chip.is-past { opacity: 0.5; }
+.chip-swatch.is-past { opacity: 0.5; }

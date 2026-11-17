@@ -36,6 +36,13 @@ const addDays = (days: number) => {
   return toISODate(d);
 };
 
+// Database error -> message for the form. 23505 = the unique "name + date" rule
+// (supabase/migrations/20261117000001_unique_event_title_date.sql).
+const saveErrorMessage = (error: { code?: string; message: string }) =>
+  error.code === '23505'
+    ? 'يوجد حدث بنفس الاسم في نفس التاريخ بالفعل. من فضلك غيّر اسم الخدمة او الاجتماع أو التاريخ.'
+    : `Could not save: ${error.message}`;
+
 const TOO_SOON = 'يجب أن يكون تاريخ الحدث بعد أسبوعين على الأقل من اليوم.';
 
 type EventFormProps = {
@@ -156,7 +163,7 @@ export default function EventForm({
     if (eventId) {
       // Only the form's fields are updated; status and the games plan stay as they are.
       const { error } = await supabase.from('events').update(fieldValues).eq('id', eventId);
-      if (error) return setStatus({ state: 'error', message: `Could not save: ${error.message}`, id: '' });
+      if (error) return setStatus({ state: 'error', message: saveErrorMessage(error), id: '' });
       router.push(`/events/${eventId}`);
       router.refresh();
       return;
@@ -166,7 +173,7 @@ export default function EventForm({
     // visitors who aren't logged in are allowed to add events but not read them.
     const id = crypto.randomUUID();
     const { error } = await supabase.from('events').insert({ ...defaults, ...fieldValues, id });
-    if (error) return setStatus({ state: 'error', message: `Could not save: ${error.message}`, id: '' });
+    if (error) return setStatus({ state: 'error', message: saveErrorMessage(error), id: '' });
     if (submittedPath) {
       // Like Google Forms: leave the form for a confirmation page. replace() so
       // the browser's Back button doesn't return to the submitted form.

@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
+import DeclineDialog from '@/components/DeclineDialog';
 import { formatRange, parseSchedule, type ScheduleSlot } from '@/lib/schedule';
-import { CalendarIcon, CheckIcon, ClockIcon, EyeIcon, GamesIcon, PhoneIcon, PinIcon, UserIcon } from '@/components/icons';
+import { CalendarIcon, CheckIcon, ClockIcon, CloseIcon, EyeIcon, GamesIcon, PhoneIcon, PinIcon, UserIcon } from '@/components/icons';
 
 type PendingEvent = {
   id: string;
@@ -24,6 +25,10 @@ export default function Pending() {
   // Approved on this visit: the card stays, marked approved, with Form 2 enabled.
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  // Declined on this visit: the card stays, marked declined, showing the message.
+  const [declined, setDeclined] = useState<Record<string, string>>({});
+  // Event whose "Decline" box is open.
+  const [decliningEvent, setDecliningEvent] = useState<PendingEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -50,7 +55,18 @@ export default function Pending() {
     setApprovedIds((prev) => new Set(prev).add(id));
   };
 
-  const waiting = events.length - approvedIds.size;
+  const decline = async (id: string, message: string) => {
+    const { error } = await supabase
+      .from('events')
+      .update({ status: 'declined', decline_reason: message, declined_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) return `Could not decline: ${error.message}`;
+    setDeclined((prev) => ({ ...prev, [id]: message }));
+    setDecliningEvent(null);
+    return null;
+  };
+
+  const waiting = events.length - approvedIds.size - Object.keys(declined).length;
 
   return (
     <section className="page">
@@ -78,13 +94,17 @@ export default function Pending() {
       <div className="pending-list">
         {events.map((ev) => {
           const approved = approvedIds.has(ev.id);
+          const declineMessage = declined[ev.id];
           const slots = parseSchedule(ev.schedule);
           return (
-            <article key={ev.id} className={`pending-card${approved ? ' is-approved' : ''}`}>
+            <article
+              key={ev.id}
+              className={`pending-card${approved ? ' is-approved' : ''}${declineMessage ? ' is-declined' : ''}`}
+            >
               <div className="pending-head">
                 <h2 dir="auto">{ev.title}</h2>
-                <span className={`status-badge ${approved ? 'approved' : 'pending'}`}>
-                  {approved ? <><CheckIcon size={14} /> Approved</> : 'Pending'}
+                <span className={`status-badge ${approved ? 'approved' : declineMessage ? 'declined' : 'pending'}`}>
+                  {approved ? <><CheckIcon size={14} /> Approved</> : declineMessage ? <><CloseIcon size={14} /> Declined</> : 'Pending'}
                 </span>
               </div>
 
@@ -100,11 +120,17 @@ export default function Pending() {
                 )}
               </ul>
 
+              {declineMessage && (
+                <p className="decline-note" dir="auto">
+                  <strong>Decline message:</strong> {declineMessage}
+                </p>
+              )}
+
               <div className="pending-actions">
                 <Link href={`/events/${ev.id}`} className="btn btn-ghost">
                   <EyeIcon size={17} /> View details
                 </Link>
-                {approved ? (
+                {declineMessage ? null : approved ? (
                   <Link href={`/form-2?event=${ev.id}`} className="btn btn-primary">
                     <GamesIcon size={17} /> Open Form 2
                   </Link>
@@ -118,11 +144,29 @@ export default function Pending() {
                     <CheckIcon size={17} /> {approvingId === ev.id ? 'Approving…' : 'Approve'}
                   </button>
                 )}
+                {!approved && !declineMessage && (
+                  <button
+                    type="button"
+                    onClick={() => setDecliningEvent(ev)}
+                    disabled={approvingId === ev.id}
+                    className="btn btn-danger-ghost"
+                  >
+                    <CloseIcon size={17} /> Decline
+                  </button>
+                )}
               </div>
             </article>
           );
         })}
       </div>
+
+      {decliningEvent && (
+        <DeclineDialog
+          eventTitle={decliningEvent.title}
+          onCancel={() => setDecliningEvent(null)}
+          onConfirm={(message) => decline(decliningEvent.id, message)}
+        />
+      )}
     </section>
   );
 }

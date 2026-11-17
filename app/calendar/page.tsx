@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatTime, parseSchedule } from '@/lib/schedule';
+import { displayStatus, hasGamesPlan, teamToday } from '@/lib/status';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
 import { createClient } from '@/lib/supabase/server';
 
@@ -8,7 +9,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const toKey = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
 // One chip on the calendar: an event on one of its days, with that day's start time.
-type DayEntry = { id: string; title: string; status: string; from: string };
+type DayEntry = { id: string; title: string; planned: boolean; completed: boolean; from: string };
 
 export default async function CalendarPage({
   searchParams,
@@ -31,20 +32,25 @@ export default async function CalendarPage({
   // since those rows may fall in this month.
   const { data: events, error } = await supabase
     .from('events')
-    .select('id, title, event_date, status, schedule')
-    // Approved = no games plan yet (outlined chip); completed = Form 2 saved (solid chip).
+    .select('id, title, event_date, status, schedule, leader, games')
+    // Approved events only ("completed" in older rows also means approved).
+    // Chip style: outlined = no games plan yet, solid = games plan added,
+    // faded = completed (its last date has passed).
     .in('status', ['approved', 'completed'])
     .or(`and(event_date.gte.${monthStart},event_date.lte.${monthEnd}),schedule.neq.[]`);
 
   // An event shows on its تاريخ date and on every date in its schedule.
   const byDay: Record<string, DayEntry[]> = {};
+  const today = teamToday();
   for (const e of events ?? []) {
+    const planned = hasGamesPlan(e);
+    const completed = displayStatus(e, today) === 'completed';
     const slots = parseSchedule(e.schedule);
     const days = new Set([e.event_date, ...slots.map((s) => s.date)]);
     for (const day of days) {
       if (day < monthStart || day > monthEnd) continue;
       const from = slots.filter((s) => s.date === day).map((s) => s.from).sort()[0] ?? '';
-      (byDay[day] ??= []).push({ id: e.id, title: e.title, status: e.status, from });
+      (byDay[day] ??= []).push({ id: e.id, title: e.title, planned, completed, from });
     }
   }
   // Within a day: timed events in time order, then untimed ones.
@@ -87,6 +93,7 @@ export default async function CalendarPage({
       <div className="cal-legend">
         <span><i className="chip-swatch approved" /> Approved, games plan not added yet</span>
         <span><i className="chip-swatch" /> Games plan added</span>
+        <span><i className="chip-swatch is-past" /> Completed (date passed)</span>
       </div>
 
       {error && <p className="error">Could not load events: {error.message}</p>}
@@ -105,8 +112,8 @@ export default async function CalendarPage({
                 <Link
                   key={e.id}
                   href={`/events/${e.id}`}
-                  className={`chip${e.status === 'approved' ? ' approved' : ''}`}
-                  title={e.status === 'approved' ? `${e.title} (games plan not added yet)` : e.title}
+                  className={`chip${e.planned ? '' : ' approved'}${e.completed ? ' is-past' : ''}`}
+                  title={`${e.title}${e.completed ? ' (completed)' : e.planned ? '' : ' (games plan not added yet)'}`}
                 >
                   {e.from && <b>{formatTime(e.from)} </b>}
                   {e.title}

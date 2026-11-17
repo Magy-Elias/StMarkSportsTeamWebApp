@@ -70,7 +70,8 @@ function Form2Content() {
       .filter((g) => Object.values(g).some((v) => v !== null));
     const { error } = await supabase
       .from('events')
-      .update({ leader: clean(plan.leader), co_leader: clean(plan.co_leader), games, status: 'completed' })
+      // Only the games plan; the status isn't changed ("completed" is automatic, see lib/status.ts).
+      .update({ leader: clean(plan.leader), co_leader: clean(plan.co_leader), games })
       .eq('id', eventId);
     setStatus(error ? { state: 'error', message: error.message } : { state: 'saved' as const, message: null });
   };

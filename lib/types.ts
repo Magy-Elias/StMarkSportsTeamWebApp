@@ -1,6 +1,6 @@
 import type { ScheduleSlot } from '@/lib/schedule';
 
-export type EventStatus = 'pending' | 'approved' | 'completed';
+export type EventStatus = 'pending' | 'approved' | 'completed' | 'declined';
 
 export type EventGame = {
   leader?: string;
@@ -18,6 +18,9 @@ export type Event = {
   phone?: string | null;
   email?: string | null;
   remarks?: string | null;
+  /** Message written when the event was declined (Events Pending). */
+  decline_reason?: string | null;
+  declined_at?: string | null;
   day_name?: string | null;
   goal?: string | null;
   event_date: string;

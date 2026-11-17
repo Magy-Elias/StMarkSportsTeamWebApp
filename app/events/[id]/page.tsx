@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { formatRange, parseSchedule } from '@/lib/schedule';
 import { EditIcon } from '@/components/icons';
+import { displayStatus } from '@/lib/status';
 import type { Event } from '@/lib/types';
 
 // Fields shown on the detail page, in order. Add or remove entries here.
@@ -21,7 +22,8 @@ const DETAIL_FIELDS = [
 const STATUS_LABEL: Record<string, string> = {
   pending: 'بانتظار الموافقة',
   approved: 'تمت الموافقة',
-  completed: 'خطة الألعاب جاهزة',
+  completed: 'مكتمل',
+  declined: 'مرفوض',
 };
 
 const formatDate = (iso: string) =>
@@ -38,6 +40,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const event = data as unknown as Event;
   const schedule = parseSchedule(event.schedule);
+  // "completed" is automatic: approved and its last date has passed.
+  const status = displayStatus(event);
 
   return (
     <article className="card" dir="rtl">
@@ -47,12 +51,23 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       <div className="detail-header">
         <div>
           <h1>{event.title}</h1>
-          <span className={`status-badge ${event.status}`}>{STATUS_LABEL[event.status] ?? event.status}</span>
+          <span className={`status-badge ${status}`}>{STATUS_LABEL[status] ?? status}</span>
         </div>
         <Link href={`/events/${event.id}/edit`} className="btn btn-primary">
           <EditIcon size={17} /> Edit
         </Link>
       </div>
+      {event.status === 'declined' && (
+        <div className="decline-note" dir="auto">
+          <strong>سبب الرفض:</strong> {event.decline_reason || '—'}
+          {event.declined_at && (
+            <small className="muted" dir="ltr">
+              {' '}
+              ({new Date(event.declined_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
+            </small>
+          )}
+        </div>
+      )}
       <dl className="details">
         {DETAIL_FIELDS.map(({ key, label, format }) => {
           const raw = event[key as keyof Event];
