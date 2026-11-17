@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env';
 
 // Pages anyone can open without logging in.
-const PUBLIC_PATHS = ['/login', '/form-1'];
+const PUBLIC_PATHS = ['/login', '/event-registration'];
 
 const isPublic = (pathname: string) =>
   PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
