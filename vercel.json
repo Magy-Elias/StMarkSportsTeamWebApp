@@ -1,0 +1,12 @@
+{
+  "redirects": [
+    {
+      "source": "/form-1",
+      "destination": "/event-registration",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
