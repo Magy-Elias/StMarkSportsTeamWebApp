@@ -57,6 +57,8 @@ type EventFormProps = {
   initialValues?: Record<string, string>;
   /** Optional info/hint box shown in the form. */
   hint?: string;
+  /** Logo image URL shown at the top left of the form header (e.g. "/logo.svg"). */
+  logo?: string;
   /** New events: page to go to after saving (gets ?id=<new event id>). */
   submittedPath?: string;
 };
@@ -70,6 +72,7 @@ export default function EventForm({
   eventId,
   initialValues,
   hint,
+  logo,
   submittedPath,
 }: EventFormProps) {
   const router = useRouter();
@@ -186,8 +189,13 @@ export default function EventForm({
 
   return (
     <section className="card" dir={dir}>
-      {/* dir="auto": English titles (e.g. "Form 1") align left, Arabic ones right. */}
-      <h1 dir="auto">{title}</h1>
+      <div className="form-header">
+        {/* dir="auto": English titles (e.g. "Form 1") align left, Arabic ones right. */}
+        <h1 dir="auto">{title}</h1>
+        {logo && (
+          <img src={logo} alt="Logo" className="form-logo" />
+        )}
+      </div>
       <form onSubmit={onSubmit} className="form">
         {fields.map((f) => (
           f.type === 'schedule' ? (

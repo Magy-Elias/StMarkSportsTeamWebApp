@@ -555,6 +555,19 @@ main.no-sidebar { margin-left: 0; }
   .wheel { scroll-behavior: auto; }
 }
 
+/* Form header: title + optional logo side by side */
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.form-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
 /* Extra space above the hint box when tall wheel pickers are above it */
 .form-info {
   margin-top: 20px;
