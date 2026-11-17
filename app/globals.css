@@ -693,3 +693,9 @@ main.no-sidebar { margin-left: 0; }
 /* Calendar: completed events (approved, date passed) are faded. */
 .chip.is-past { opacity: 0.5; }
 .chip-swatch.is-past { opacity: 0.5; }
+
+/* Events Pending: result of the status email after Approve / Decline */
+.email-note { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); }
+.email-note.is-sent { color: var(--success); }
+.email-note.is-failed { color: var(--danger); }
+.link-btn { font: inherit; font-weight: 600; background: none; border: none; padding: 0; color: var(--primary); text-decoration: underline; cursor: pointer; }

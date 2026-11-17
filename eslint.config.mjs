@@ -2,6 +2,8 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
+  // Supabase Edge Functions run on Deno and are checked with `deno check`.
+  { ignores: ['supabase/functions/**', '.next/**', 'node_modules/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
@@ -24,5 +26,7 @@ export default tseslint.config(
       '@typescript-eslint/no-base-to-string': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
     },
-  }
+  },
+  // Config files (eslint.config.mjs, vitest.config.mts) aren't in tsconfig, so no type info.
+  { files: ['**/*.{js,mjs,cjs,mts,cts}'], ...tseslint.configs.disableTypeChecked }
 );

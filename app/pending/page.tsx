@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import DeclineDialog from '@/components/DeclineDialog';
+import { sendStatusEmail, type EmailResult } from '@/lib/notify';
 import { formatRange, parseSchedule, type ScheduleSlot } from '@/lib/schedule';
-import { CalendarIcon, CheckIcon, ClockIcon, CloseIcon, EyeIcon, GamesIcon, PhoneIcon, PinIcon, UserIcon } from '@/components/icons';
+import { CalendarIcon, CheckIcon, ClockIcon, CloseIcon, EyeIcon, GamesIcon, MailIcon, PhoneIcon, PinIcon, UserIcon } from '@/components/icons';
 
 type PendingEvent = {
   id: string;
@@ -27,6 +28,14 @@ export default function Pending() {
   const [approvingId, setApprovingId] = useState<string | null>(null);
   // Declined on this visit: the card stays, marked declined, showing the message.
   const [declined, setDeclined] = useState<Record<string, string>>({});
+  // Result of the status email for each event approved/declined on this visit
+  // ('sending' while it's on its way).
+  const [emails, setEmails] = useState<Record<string, EmailResult | 'sending'>>({});
+  const notify = async (id: string) => {
+    setEmails((prev) => ({ ...prev, [id]: 'sending' }));
+    const result = await sendStatusEmail(id);
+    setEmails((prev) => ({ ...prev, [id]: result }));
+  };
   // Event whose "Decline" box is open.
   const [decliningEvent, setDecliningEvent] = useState<PendingEvent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +62,7 @@ export default function Pending() {
     setApprovingId(null);
     if (error) return setActionError(`Could not approve: ${error.message}`);
     setApprovedIds((prev) => new Set(prev).add(id));
+    void notify(id);
   };
 
   const decline = async (id: string, message: string) => {
@@ -63,6 +73,7 @@ export default function Pending() {
     if (error) return `Could not decline: ${error.message}`;
     setDeclined((prev) => ({ ...prev, [id]: message }));
     setDecliningEvent(null);
+    void notify(id);
     return null;
   };
 
@@ -123,6 +134,23 @@ export default function Pending() {
               {declineMessage && (
                 <p className="decline-note" dir="auto">
                   <strong>Decline message:</strong> {declineMessage}
+                </p>
+              )}
+
+              {emails[ev.id] && (
+                <p
+                  className={`email-note${emails[ev.id] === 'sending' ? '' : (emails[ev.id] as EmailResult).ok ? ' is-sent' : ' is-failed'}`}
+                  role="status"
+                >
+                  <MailIcon size={16} />
+                  {emails[ev.id] === 'sending'
+                    ? 'Sending email…'
+                    : (emails[ev.id] as EmailResult).ok
+                      ? <>Email sent to <span dir="ltr">{(emails[ev.id] as { to: string }).to}</span></>
+                      : <>
+                          Email not sent: {(emails[ev.id] as { error: string }).error}{' '}
+                          <button type="button" className="link-btn" onClick={() => void notify(ev.id)}>Try again</button>
+                        </>}
                 </p>
               )}
 
