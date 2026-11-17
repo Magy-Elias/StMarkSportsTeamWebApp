@@ -57,8 +57,10 @@ type EventFormProps = {
   initialValues?: Record<string, string>;
   /** Optional info/hint box shown in the form. */
   hint?: string;
-  /** Logo image URL shown at the top left of the form header (e.g. "/logo.svg"). */
-  logo?: string;
+  /** Logo URL shown top-left above the title (e.g. "/logo.svg"). */
+  logoLeft?: string;
+  /** Logo URL shown top-right above the title (e.g. "/logo.svg"). */
+  logoRight?: string;
   /** New events: page to go to after saving (gets ?id=<new event id>). */
   submittedPath?: string;
 };
@@ -72,7 +74,8 @@ export default function EventForm({
   eventId,
   initialValues,
   hint,
-  logo,
+  logoLeft,
+  logoRight,
   submittedPath,
 }: EventFormProps) {
   const router = useRouter();
@@ -190,9 +193,14 @@ export default function EventForm({
   return (
     <section className="card" dir={dir}>
       <div className="form-header">
-        {logo && (
-          <img src={logo} alt="Logo" className="form-logo" />
-        )}
+        <div className="logos-row" dir="ltr">
+          {logoLeft && (
+            <img src={logoLeft} alt="Left logo" className="form-logo" />
+          )}
+          {logoRight && (
+            <img src={logoRight} alt="Right logo" className="form-logo" />
+          )}
+        </div>
         {/* dir="auto": English titles (e.g. "Form 1") align left, Arabic ones right. */}
         <h1 dir="auto">{title}</h1>
       </div>

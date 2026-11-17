@@ -12,7 +12,8 @@ export default function Form1() {
       submitLabel="Save"
       defaults={{ status: 'pending' }}
       hint={FORM1_CONTACT}
-      logo="/logo.svg"
+      logoLeft="/logo.svg"
+      logoRight="/logo.svg"
       submittedPath="/form-1/submitted"
     />
   );

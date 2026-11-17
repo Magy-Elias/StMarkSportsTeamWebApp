@@ -555,12 +555,22 @@ main.no-sidebar { margin-left: 0; }
   .wheel { scroll-behavior: auto; }
 }
 
-/* Form header: title + optional logo side by side */
+/* Form header: two logos above the title */
 .form-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 16px;
+  text-align: center;
+}
+.logos-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 320px;
 }
 .form-logo {
   width: 44px;
