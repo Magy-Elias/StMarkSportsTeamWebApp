@@ -6,7 +6,7 @@ import { FORM1_CONTACT, FORM1_FIELDS } from '@/components/form1Fields';
 export default function EventRegistration() {
   return (
     <EventForm
-      title="Event Registration"
+      title="One 99 Event Registration Form"
       fields={FORM1_FIELDS}
       dir="rtl"
       submitLabel="Save"
