@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import DatePicker from '@/components/DatePicker';
-import { emptyFormSlot, fromFormSlots, type FormSlot, type TimeParts } from '@/lib/schedule';
+import { emptyFormSlot, fromFormSlots, nextDay, type FormSlot, type ScheduleRules, type TimeParts } from '@/lib/schedule';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -174,12 +174,15 @@ const isUnset = (t: TimeParts) => !t.hour || !t.minute;
 export default function ScheduleInput({
   value,
   onChange,
-  minDate,
+  rules = {},
+  fixedCount = false,
 }: {
   value: FormSlot[];
   onChange: (v: FormSlot[]) => void;
-  /** Earliest allowed date for a row (the event's main date, "تاريخ"). */
-  minDate?: string;
+  /** Date rules (earliest date, every row required, days in order…). */
+  rules?: ScheduleRules;
+  /** The number of rows is set elsewhere (e.g. a "Number of event days" dropdown): no + / ×. */
+  fixedCount?: boolean;
 }) {
   const slots = value.length ? value : [emptyFormSlot()];
   const save = onChange;
@@ -202,18 +205,34 @@ export default function ScheduleInput({
   };
 
   // Validate the schedule locally so the error can be shown right under the time field.
-  const { error: scheduleError } = fromFormSlots(slots, minDate);
+  const { error: scheduleError } = fromFormSlots(slots, rules);
+  const word = rules.rowWord ?? 'الموعد';
+  // Earliest date the calendar lets you pick for row i: the rule's minimum, and
+  // (when days must be in order) the day after the previous row's date. An
+  // event's existing date stays pickable when editing.
+  const rowMin = (i: number) => {
+    let min = rules.minDate;
+    const prev = slots[i - 1]?.date;
+    if (rules.ascending && prev) {
+      const afterPrev = nextDay(prev);
+      if (!min || afterPrev > min) min = afterPrev;
+    }
+    const current = slots[i]?.date;
+    if (min && current && current < min && rules.allowedDates?.includes(current)) return current;
+    return min;
+  };
 
   return (
     <div className="schedule">
       {slots.map((slot, i) => (
         <div key={i} className="schedule-row">
+          {fixedCount && <div className="schedule-day-label">{word} {i + 1}</div>}
           {/* Line 1: date */}
           <div className="schedule-date-row">
             <DatePicker
-              label={slots.length > 1 ? `التاريخ (الموعد ${i + 1})` : 'التاريخ'}
+              label={slots.length > 1 || fixedCount ? `التاريخ (${word} ${i + 1})` : 'التاريخ'}
               value={slot.date}
-              min={minDate || undefined}
+              min={rowMin(i) || undefined}
               onChange={(date) => update(i, { date })}
             />
           </div>
@@ -222,6 +241,7 @@ export default function ScheduleInput({
             <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
             <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
           </div>
+          {!fixedCount && (
           <div className="schedule-actions">
             {slots.length > 1 && (
               <button
@@ -246,6 +266,7 @@ export default function ScheduleInput({
               </button>
             )}
           </div>
+          )}
         </div>
       ))}
       {scheduleError && (

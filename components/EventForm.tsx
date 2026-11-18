@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DatePicker from '@/components/DatePicker';
 import ScheduleInput from '@/components/ScheduleInput';
-import { fromFormSlots, toFormSlots, type FormSlot } from '@/lib/schedule';
+import { emptyFormSlot, fromFormSlots, parseSchedule, toFormSlots, type FormSlot, type ScheduleRules } from '@/lib/schedule';
 import { supabase } from '@/lib/supabase/client';
 
 // 'schedule' = rows of date + from + to (see components/ScheduleInput.tsx).
@@ -23,8 +23,15 @@ export type Field = {
   minDaysAhead?: number;
   /** Small note shown under the field. */
   hint?: string;
-  /** Schedule fields: rows can't be before the date in this other field. */
-  minDateFrom?: string;
+  /**
+   * Schedule fields: show a "number of days" dropdown (1…maxDays) with this
+   * field's label; the date/time rows appear only after a number is picked.
+   */
+  maxDays?: number;
+  /** Schedule fields with maxDays: title of the date/time rows section. */
+  sectionLabel?: string;
+  /** Schedule fields: also save Day 1's date into this field (the event's main date). */
+  dateField?: string;
 };
 
 // Local calendar dates as "YYYY-MM-DD" (the browser's own day, not UTC).
@@ -84,15 +91,21 @@ export default function EventForm({
   const [values, setValues] = useState<Record<string, string>>({ ...empty, ...initialValues });
   // Date + from/to rows, kept separately because each row has several parts.
   const emptySchedules = () =>
-    Object.fromEntries(fields.filter((f) => f.type === 'schedule').map((f) => [f.name, toFormSlots([])]));
+    Object.fromEntries(fields.filter((f) => f.type === 'schedule').map((f) => [f.name, f.maxDays ? [] : toFormSlots([])]));
   const [schedules, setSchedules] = useState<Record<string, FormSlot[]>>(() =>
     Object.fromEntries(
-      fields.filter((f) => f.type === 'schedule').map((f) => [f.name, toFormSlots(initialValues?.[f.name] ?? '')]),
+      fields.filter((f) => f.type === 'schedule').map((f) => {
+        const saved = initialValues?.[f.name] ?? '';
+        if (!f.maxDays) return [f.name, toFormSlots(saved)];
+        // "Days" fields: exactly the saved days (up to maxDays), none for a new event.
+        return [f.name, parseSchedule(saved).length ? toFormSlots(saved).slice(0, f.maxDays) : []];
+      }),
     ),
   );
   const reset = () => {
     setValues(empty);
     setSchedules(emptySchedules());
+    setDayCounts(Object.fromEntries(fields.filter((f) => f.maxDays).map((f) => [f.name, 0])));
   };
   const [status, setStatus] = useState<{ state: 'idle' | 'saving' | 'error' | 'saved'; message: string | null; id: string }>({
     state: 'idle',
@@ -121,7 +134,38 @@ export default function EventForm({
     if (!v || !min || v >= min) return false;
     return !(editing && v === initialValues?.[f.name]);
   };
-  const scheduleMin = (f: Field) => (f.minDateFrom ? values[f.minDateFrom] || undefined : undefined);
+
+  // "Number of event days" (schedule fields with maxDays). 0 = not picked yet:
+  // the date/time rows stay hidden. When editing, it's the event's saved days.
+  const initialDayCounts = () =>
+    Object.fromEntries(
+      fields
+        .filter((f) => f.maxDays)
+        .map((f) => [f.name, editing ? Math.min(parseSchedule(initialValues?.[f.name] ?? '').length, f.maxDays ?? 0) : 0]),
+    );
+  const [dayCounts, setDayCounts] = useState<Record<string, number>>(initialDayCounts);
+  const setDayCount = (f: Field, n: number) => {
+    setDayCounts((c) => ({ ...c, [f.name]: n }));
+    // Keep what's already filled in; add empty rows or drop extra ones.
+    setSchedules((s) => {
+      const rows = (s[f.name] ?? []).slice(0, n);
+      while (rows.length < n) rows.push(emptyFormSlot());
+      return { ...s, [f.name]: rows };
+    });
+  };
+  // Rules for each schedule field's date rows.
+  const scheduleRules = (f: Field): ScheduleRules =>
+    f.maxDays
+      ? {
+          minDate: minDates[f.name],
+          minDateMessage: f.hint,
+          // When editing, the event's existing dates stay allowed.
+          allowedDates: editing ? parseSchedule(initialValues?.[f.name] ?? '').map((d) => d.date) : [],
+          requireAll: true,
+          ascending: true,
+          rowWord: 'اليوم',
+        }
+      : {};
 
   // Visitors who aren't logged in can submit, but can't open event pages.
   const [loggedIn, setLoggedIn] = useState(false);
@@ -134,7 +178,8 @@ export default function EventForm({
   const problem = (() => {
     for (const f of fields) {
       if (f.type === 'schedule') {
-        const { schedule, error } = fromFormSlots(schedules[f.name] ?? [], scheduleMin(f));
+        if (f.maxDays && !dayCounts[f.name]) return f.required ? 'missing' : null;
+        const { schedule, error } = fromFormSlots(schedules[f.name] ?? [], scheduleRules(f));
         if (error) return error;
         if (f.required && schedule.length === 0) return 'missing';
       } else if (f.required && !(values[f.name] ?? '').trim()) {
@@ -156,9 +201,11 @@ export default function EventForm({
     const fieldValues: Record<string, unknown> = {};
     for (const f of fields) {
       if (f.type === 'schedule') {
-        const { schedule, error } = fromFormSlots(schedules[f.name] ?? [], scheduleMin(f));
+        const { schedule, error } = fromFormSlots(schedules[f.name] ?? [], scheduleRules(f));
         if (error) return setStatus({ state: 'error', message: error, id: '' });
         fieldValues[f.name] = schedule;
+        // The event's main date is Day 1 (the days are in order).
+        if (f.dateField && schedule[0]) fieldValues[f.dateField] = schedule[0].date;
         continue;
       }
       if (tooSoon(f)) return setStatus({ state: 'error', message: TOO_SOON, id: '' });
@@ -206,14 +253,44 @@ export default function EventForm({
       </div>
       <form onSubmit={onSubmit} className="form">
         {fields.map((f) => (
-          f.type === 'schedule' ? (
+          f.type === 'schedule' && f.maxDays ? (
+            // "Number of event days" dropdown; the date/time rows appear once it's picked.
+            <div key={f.name} className="days-field">
+              <label>
+                <span>{f.label}{f.required && ' *'}</span>
+                <select
+                  name={`${f.name}-days`}
+                  value={dayCounts[f.name] || ''}
+                  onChange={(e) => setDayCount(f, Number(e.target.value) || 0)}
+                  required={f.required}
+                >
+                  <option value="">Select…</option>
+                  {Array.from({ length: f.maxDays }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                {f.hint && <small className="field-hint">{f.hint}</small>}
+              </label>
+              {dayCounts[f.name] > 0 && (
+                <fieldset className="schedule-fieldset">
+                  <legend>{f.sectionLabel ?? f.label}{f.required && ' *'}</legend>
+                  <ScheduleInput
+                    value={schedules[f.name] ?? []}
+                    onChange={(rows) => setSchedules((s) => ({ ...s, [f.name]: rows }))}
+                    rules={scheduleRules(f)}
+                    fixedCount
+                  />
+                </fieldset>
+              )}
+            </div>
+          ) : f.type === 'schedule' ? (
             // Several inputs per row, so a fieldset rather than a single label.
             <fieldset key={f.name} className="schedule-fieldset">
               <legend>{f.label}{f.required && ' *'}</legend>
               <ScheduleInput
                 value={schedules[f.name] ?? []}
                 onChange={(rows) => setSchedules((s) => ({ ...s, [f.name]: rows }))}
-                minDate={scheduleMin(f)}
+                rules={scheduleRules(f)}
               />
             </fieldset>
           ) : f.type === 'date' ? (

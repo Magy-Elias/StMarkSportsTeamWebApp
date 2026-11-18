@@ -724,3 +724,7 @@ main.no-sidebar { margin-left: 0; }
 .email-note.is-sent { color: var(--success); }
 .email-note.is-failed { color: var(--danger); }
 .link-btn { font: inherit; font-weight: 600; background: none; border: none; padding: 0; color: var(--primary); text-decoration: underline; cursor: pointer; }
+
+/* Event Registration: "Number of event days" + one row per day */
+.days-field { display: flex; flex-direction: column; gap: 16px; }
+.schedule-day-label { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
