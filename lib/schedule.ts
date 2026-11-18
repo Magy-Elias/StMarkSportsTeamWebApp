@@ -115,3 +115,39 @@ export function fromFormSlots(rows: FormSlot[], rules: ScheduleRules = {}): { sc
   }
   return { schedule, error: null };
 }
+
+/** A problem with one date row, to show under that row. */
+export type RowIssue = {
+  message: string;
+  /** 'todo' = not filled in yet (gentle note), 'error' = something is wrong (red). */
+  kind: 'todo' | 'error';
+  /** Which part of the row it's about. */
+  part: 'date' | 'time';
+};
+
+/**
+ * Same rules as fromFormSlots, but checked for every row separately, so each
+ * day can show its own message (e.g. "Day 2 must be after Day 1").
+ */
+export function rowIssues(rows: FormSlot[], rules: ScheduleRules = {}): (RowIssue | null)[] {
+  const word = rules.rowWord ?? 'الموعد';
+  let prevDate: string | undefined;
+  return rows.map((row, i) => {
+    const empty = !row.date && partsEmpty(row.from) && partsEmpty(row.to);
+    if (empty && !rules.requireAll) return null;
+    const from = fromParts(row.from);
+    const to = fromParts(row.to);
+    const previous = prevDate;
+    if (row.date) prevDate = row.date;
+    if (!row.date) return { kind: 'todo', part: 'date', message: `من فضلك اختر تاريخ ${word} ${i + 1}.` };
+    if (rules.minDate && row.date < rules.minDate && !rules.allowedDates?.includes(row.date)) {
+      return { kind: 'error', part: 'date', message: rules.minDateMessage ?? 'تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث.' };
+    }
+    if (rules.ascending && previous && row.date <= previous) {
+      return { kind: 'error', part: 'date', message: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
+    }
+    if (!from || !to) return { kind: 'todo', part: 'time', message: 'من فضلك اختر وقت البداية والنهاية.' };
+    if (to <= from) return { kind: 'error', part: 'time', message: 'وقت النهاية يجب أن يكون بعد وقت البداية.' };
+    return null;
+  });
+}

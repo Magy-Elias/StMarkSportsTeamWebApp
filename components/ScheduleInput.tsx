@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import DatePicker from '@/components/DatePicker';
-import { emptyFormSlot, fromFormSlots, nextDay, type FormSlot, type ScheduleRules, type TimeParts } from '@/lib/schedule';
+import { emptyFormSlot, fromFormSlots, nextDay, rowIssues, type FormSlot, type ScheduleRules, type TimeParts } from '@/lib/schedule';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -204,8 +204,11 @@ export default function ScheduleInput({
     save(next);
   };
 
-  // Validate the schedule locally so the error can be shown right under the time field.
+  // Each day's own problem, shown under that day (e.g. "Day 2 must be after Day 1").
+  const issues = rowIssues(slots, rules);
+  // Fallback: anything the per-row check doesn't cover is shown under all rows.
   const { error: scheduleError } = fromFormSlots(slots, rules);
+  const shownUnderRows = issues.some(Boolean);
   const word = rules.rowWord ?? 'الموعد';
   // Earliest date the calendar lets you pick for row i: the rule's minimum, and
   // (when days must be in order) the day after the previous row's date. An
@@ -234,6 +237,7 @@ export default function ScheduleInput({
               value={slot.date}
               min={rowMin(i) || undefined}
               onChange={(date) => update(i, { date })}
+              invalid={issues[i]?.kind === 'error' && issues[i]?.part === 'date'}
             />
           </div>
           {/* Line 2: time wheels (from → to) */}
@@ -241,6 +245,14 @@ export default function ScheduleInput({
             <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
             <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
           </div>
+          {issues[i] && (
+            <p
+              className={`row-issue ${issues[i]?.kind === 'error' ? 'is-error' : 'is-todo'}`}
+              role={issues[i]?.kind === 'error' ? 'alert' : 'status'}
+            >
+              {issues[i]?.message}
+            </p>
+          )}
           {!fixedCount && (
           <div className="schedule-actions">
             {slots.length > 1 && (
@@ -269,7 +281,7 @@ export default function ScheduleInput({
           )}
         </div>
       ))}
-      {scheduleError && (
+      {scheduleError && !shownUnderRows && (
         <p className="schedule-error" role="alert">
           {scheduleError}
         </p>
