@@ -138,6 +138,14 @@ function Wheel({
 
 function ClockTimePicker({ label, value, onChange }: { label: string; value: TimeParts; onChange: (v: TimeParts) => void }) {
   const set = (patch: Partial<TimeParts>) => onChange({ ...value, ...patch });
+  // Like the iPhone clock: moving the hour across 11 ↔ 12 also switches AM/PM,
+  // so 11 AM → 12 gives 12 PM (noon), not 12 AM (midnight).
+  const setHour = (hour: string) => {
+    const before = Number(value.hour);
+    const after = Number(hour);
+    const crossed = (before >= 1 && before <= 11 && after === 12) || (before === 12 && after >= 1 && after <= 11);
+    set(crossed ? { hour, period: value.period === 'AM' ? 'PM' : 'AM' } : { hour });
+  };
 
   return (
     <div className="time-picker">
@@ -145,7 +153,7 @@ function ClockTimePicker({ label, value, onChange }: { label: string; value: Tim
       {/* Hour : minute AM/PM, always left-to-right, with one shared middle band */}
       <div className="time-wheels" dir="ltr" style={{ height: ITEM * VISIBLE }}>
         <span className="wheel-band" style={{ top: ITEM * ((VISIBLE - 1) / 2), height: ITEM }} aria-hidden="true" />
-        <Wheel label={`${label}: hour`} options={HOURS} value={value.hour} onChange={(hour) => set({ hour })} />
+        <Wheel label={`${label}: hour`} options={HOURS} value={value.hour} onChange={setHour} />
         <span className="time-separator" aria-hidden="true">:</span>
         <Wheel label={`${label}: minute`} options={MINUTES} value={value.minute} onChange={(minute) => set({ minute })} />
         <Wheel

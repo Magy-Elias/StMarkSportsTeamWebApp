@@ -65,6 +65,16 @@ export function toFormSlots(value: unknown): FormSlot[] {
   return slots.length ? slots : [emptyFormSlot()];
 }
 
+/**
+ * Whether an end time doesn't come after its start ("HH:MM", 24-hour).
+ * An evening start (PM) with a morning end (AM) runs past midnight into the next
+ * day, e.g. 11:00 PM → 12:00 AM or 10:00 PM → 1:00 AM, so that's allowed.
+ */
+export const endsTooEarly = (from: string, to: string) => {
+  const overnight = from >= '12:00' && to < '12:00';
+  return to <= from && !overnight;
+};
+
 /** Rules for the date rows (all optional). */
 export type ScheduleRules = {
   /** Earliest allowed date ("YYYY-MM-DD"). */
@@ -110,7 +120,7 @@ export function fromFormSlots(rows: FormSlot[], rules: ScheduleRules = {}): { sc
     if (rules.ascending && prev && row.date <= prev.date) {
       return { schedule, error: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
     }
-    if (to <= from) return { schedule, error: `وقت النهاية يجب أن يكون بعد وقت البداية${n}.` };
+    if (endsTooEarly(from, to)) return { schedule, error: `وقت النهاية يجب أن يكون بعد وقت البداية${n}.` };
     schedule.push({ date: row.date, from, to });
   }
   return { schedule, error: null };
@@ -147,7 +157,17 @@ export function rowIssues(rows: FormSlot[], rules: ScheduleRules = {}): (RowIssu
       return { kind: 'error', part: 'date', message: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
     }
     if (!from || !to) return { kind: 'todo', part: 'time', message: 'من فضلك اختر وقت البداية والنهاية.' };
-    if (to <= from) return { kind: 'error', part: 'time', message: 'وقت النهاية يجب أن يكون بعد وقت البداية.' };
+    if (endsTooEarly(from, to)) {
+      // 12:xx AM is midnight; people often mean 12:xx PM (noon).
+      const midnight = row.to.hour === '12' && row.to.period === 'AM';
+      return {
+        kind: 'error',
+        part: 'time',
+        message: midnight
+          ? 'وقت النهاية يجب أن يكون بعد وقت البداية. ملاحظة: 12 AM تعني منتصف الليل، أما الظهر فهو 12 PM.'
+          : 'وقت النهاية يجب أن يكون بعد وقت البداية.',
+      };
+    }
     return null;
   });
 }
