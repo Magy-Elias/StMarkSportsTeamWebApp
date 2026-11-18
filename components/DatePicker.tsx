@@ -14,6 +14,9 @@ const todayISO = () => {
   const t = new Date();
   return toISO(t.getFullYear(), t.getMonth(), t.getDate());
 };
+/** "2026-12-05" -> "Saturday" */
+const weekday = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
 /** "2026-11-30" -> "30/11/2026" */
 const display = (iso: string) => {
   const [y, m, d] = iso.split('-');
@@ -27,6 +30,7 @@ export default function DatePicker({
   label,
   invalid = false,
   name,
+  placeholder = 'Event Date',
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -35,6 +39,8 @@ export default function DatePicker({
   label: string;
   invalid?: boolean;
   name?: string;
+  /** Shown before a date is picked. */
+  placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const start = value || min || todayISO();
@@ -98,11 +104,20 @@ export default function DatePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popupId}
-        aria-label={`${label}: ${value ? display(value) : 'not set'}`}
+        aria-label={`${label}: ${value ? `${weekday(value)} ${display(value)}` : 'not set'}`}
         aria-invalid={invalid || undefined}
         data-name={name}
       >
-        <span className={value ? '' : 'dp-placeholder'}>{value ? display(value) : 'dd/mm/yyyy'}</span>
+        {value ? (
+          <span>
+            {/* Day name first, e.g. "Saturday · 05/12/2026" */}
+            <span className="dp-weekday-name">{weekday(value)}</span>
+            <span className="dp-sep" aria-hidden="true">·</span>
+            {display(value)}
+          </span>
+        ) : (
+          <span className="dp-placeholder">{placeholder}</span>
+        )}
         <CalendarIcon size={18} />
       </button>
 

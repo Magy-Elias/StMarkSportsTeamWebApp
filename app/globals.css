@@ -724,3 +724,16 @@ main.no-sidebar { margin-left: 0; }
 .email-note.is-sent { color: var(--success); }
 .email-note.is-failed { color: var(--danger); }
 .link-btn { font: inherit; font-weight: 600; background: none; border: none; padding: 0; color: var(--primary); text-decoration: underline; cursor: pointer; }
+
+/* Event Registration: "Number of event days" + one row per day */
+.days-field { display: flex; flex-direction: column; gap: 16px; }
+.schedule-day-label { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+
+/* Date picker: day name before the date ("Saturday · 05/12/2026") */
+.dp-weekday-name { font-weight: 700; color: var(--primary); }
+.dp-sep { margin: 0 6px; color: var(--muted); }
+
+/* Date rows: message under the day it's about */
+.row-issue { margin: 0; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.88rem; }
+.row-issue.is-error { color: var(--danger); background: var(--danger-tint); font-weight: 500; }
+.row-issue.is-todo { color: var(--muted); background: #F1F5FB; }

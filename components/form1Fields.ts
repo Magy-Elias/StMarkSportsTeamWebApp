@@ -5,15 +5,6 @@ import type { Field } from '@/components/EventForm';
 // All are required except remarks: the save button stays disabled until every
 // required field is filled.
 export const FORM1_FIELDS = [
-  {
-    name: 'event_date',
-    label: 'تاريخ',
-    type: 'date' as const,
-    required: true,
-    // Events must be booked at least two weeks ahead.
-    minDaysAhead: 14,
-    hint: 'لا يمكن أن يكون موعد الحدث قبل مرور أسبوعين من اليوم.',
-  },
   { name: 'title', label: 'اسم الخدمة او الاجتماع', required: true },
   { name: 'day_name', label: 'اسم اليوم', required: true },
   { name: 'location', label: 'المكان', required: true },
@@ -22,7 +13,21 @@ export const FORM1_FIELDS = [
   { name: 'responsible_person', label: 'الشخص المسؤول', required: true },
   { name: 'phone', label: 'رقم التليفون', type: 'tel' as const, required: true },
   { name: 'email', label: 'البريد الإلكتروني', type: 'email' as const, required: true },
-  { name: 'schedule', label: 'الوقت المحدد للالعاب', type: 'schedule' as const, required: true, minDateFrom: 'event_date' },
+  {
+    // "Number of event days" (1–5); then one row per day: date + from / to.
+    name: 'schedule',
+    label: 'Number of event days',
+    type: 'schedule' as const,
+    required: true,
+    maxDays: 5,
+    sectionLabel: 'الوقت المحدد للالعاب',
+    // Every day must be at least two weeks from today.
+    minDaysAhead: 14,
+    hint: 'لا يمكن أن يكون موعد الحدث قبل مرور أسبوعين من اليوم.',
+    // There's no separate date field: the event's date (calendar, sorting,
+    // duplicate check) is Day 1's date.
+    dateField: 'event_date',
+  },
   // Optional free-text notes.
   { name: 'remarks', label: 'ملاحظات', type: 'textarea' as const },
 ] satisfies Field[];

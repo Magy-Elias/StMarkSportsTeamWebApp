@@ -65,23 +65,89 @@ export function toFormSlots(value: unknown): FormSlot[] {
   return slots.length ? slots : [emptyFormSlot()];
 }
 
+/** Rules for the date rows (all optional). */
+export type ScheduleRules = {
+  /** Earliest allowed date ("YYYY-MM-DD"). */
+  minDate?: string;
+  /** Message when a row is before `minDate`. */
+  minDateMessage?: string;
+  /** Dates that stay allowed even if before `minDate` (an event's existing dates when editing). */
+  allowedDates?: string[];
+  /** Every row must be filled in (no skipping empty rows). */
+  requireAll?: boolean;
+  /** Each row's date must be after the previous row's date. */
+  ascending?: boolean;
+  /** Word used to name a row in messages, e.g. "اليوم" → "(اليوم 2)". Default "الموعد". */
+  rowWord?: string;
+};
+
+/** "2026-12-04" -> "2026-12-05" */
+export const nextDay = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
+
 /**
- * Form rows -> schedule to save. Completely empty rows are skipped.
- * Returns an error message (Arabic, shown in Form 1) if a row is incomplete,
- * its end time isn't after its start time, or its date is before `minDate`
- * (the event's main date).
+ * Form rows -> schedule to save. Completely empty rows are skipped unless
+ * `requireAll`. Returns an error message (Arabic, shown in the form) if a row is
+ * incomplete, its end time isn't after its start time, or its date breaks the rules.
  */
-export function fromFormSlots(rows: FormSlot[], minDate?: string): { schedule: ScheduleSlot[]; error: string | null } {
+export function fromFormSlots(rows: FormSlot[], rules: ScheduleRules = {}): { schedule: ScheduleSlot[]; error: string | null } {
   const schedule: ScheduleSlot[] = [];
+  const word = rules.rowWord ?? 'الموعد';
   for (const [i, row] of rows.entries()) {
-    if (!row.date && partsEmpty(row.from) && partsEmpty(row.to)) continue;
+    if (!rules.requireAll && !row.date && partsEmpty(row.from) && partsEmpty(row.to)) continue;
     const from = fromParts(row.from);
     const to = fromParts(row.to);
-    const n = rows.length > 1 ? ` (الموعد ${i + 1})` : '';
+    const n = rows.length > 1 || rules.requireAll ? ` (${word} ${i + 1})` : '';
     if (!row.date || !from || !to) return { schedule, error: `من فضلك اختر التاريخ ووقت البداية والنهاية${n}.` };
-    if (minDate && row.date < minDate) return { schedule, error: `تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث${n}.` };
+    const allowed = rules.allowedDates?.includes(row.date);
+    if (rules.minDate && row.date < rules.minDate && !allowed) {
+      return { schedule, error: `${rules.minDateMessage ?? 'تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث.'}${n}` };
+    }
+    const prev = schedule.at(-1);
+    if (rules.ascending && prev && row.date <= prev.date) {
+      return { schedule, error: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
+    }
     if (to <= from) return { schedule, error: `وقت النهاية يجب أن يكون بعد وقت البداية${n}.` };
     schedule.push({ date: row.date, from, to });
   }
   return { schedule, error: null };
+}
+
+/** A problem with one date row, to show under that row. */
+export type RowIssue = {
+  message: string;
+  /** 'todo' = not filled in yet (gentle note), 'error' = something is wrong (red). */
+  kind: 'todo' | 'error';
+  /** Which part of the row it's about. */
+  part: 'date' | 'time';
+};
+
+/**
+ * Same rules as fromFormSlots, but checked for every row separately, so each
+ * day can show its own message (e.g. "Day 2 must be after Day 1").
+ */
+export function rowIssues(rows: FormSlot[], rules: ScheduleRules = {}): (RowIssue | null)[] {
+  const word = rules.rowWord ?? 'الموعد';
+  let prevDate: string | undefined;
+  return rows.map((row, i) => {
+    const empty = !row.date && partsEmpty(row.from) && partsEmpty(row.to);
+    if (empty && !rules.requireAll) return null;
+    const from = fromParts(row.from);
+    const to = fromParts(row.to);
+    const previous = prevDate;
+    if (row.date) prevDate = row.date;
+    if (!row.date) return { kind: 'todo', part: 'date', message: `من فضلك اختر تاريخ ${word} ${i + 1}.` };
+    if (rules.minDate && row.date < rules.minDate && !rules.allowedDates?.includes(row.date)) {
+      return { kind: 'error', part: 'date', message: rules.minDateMessage ?? 'تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث.' };
+    }
+    if (rules.ascending && previous && row.date <= previous) {
+      return { kind: 'error', part: 'date', message: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
+    }
+    if (!from || !to) return { kind: 'todo', part: 'time', message: 'من فضلك اختر وقت البداية والنهاية.' };
+    if (to <= from) return { kind: 'error', part: 'time', message: 'وقت النهاية يجب أن يكون بعد وقت البداية.' };
+    return null;
+  });
 }
