@@ -147,7 +147,17 @@ export function rowIssues(rows: FormSlot[], rules: ScheduleRules = {}): (RowIssu
       return { kind: 'error', part: 'date', message: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
     }
     if (!from || !to) return { kind: 'todo', part: 'time', message: 'من فضلك اختر وقت البداية والنهاية.' };
-    if (to <= from) return { kind: 'error', part: 'time', message: 'وقت النهاية يجب أن يكون بعد وقت البداية.' };
+    if (to <= from) {
+      // 12:xx AM is midnight; people often mean 12:xx PM (noon).
+      const midnight = row.to.hour === '12' && row.to.period === 'AM';
+      return {
+        kind: 'error',
+        part: 'time',
+        message: midnight
+          ? 'وقت النهاية يجب أن يكون بعد وقت البداية. ملاحظة: 12 AM تعني منتصف الليل، أما الظهر فهو 12 PM.'
+          : 'وقت النهاية يجب أن يكون بعد وقت البداية.',
+      };
+    }
     return null;
   });
 }
