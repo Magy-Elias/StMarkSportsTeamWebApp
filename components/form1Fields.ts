@@ -9,7 +9,8 @@ export const FORM1_FIELDS = [
   { name: 'day_name', label: 'اسم اليوم', required: true },
   { name: 'location', label: 'المكان', required: true },
   { name: 'goal', label: 'الهدف', type: 'textarea' as const, required: true },
-  { name: 'participants_count', label: 'عدد المشاركين', type: 'number' as const, min: 0, required: true },
+  // Plain text box that only accepts digits (stored as a whole number).
+  { name: 'participants_count', label: 'عدد المشاركين', type: 'text' as const, digitsOnly: true, required: true },
   { name: 'responsible_person', label: 'الشخص المسؤول', required: true },
   { name: 'phone', label: 'رقم التليفون', type: 'tel' as const, required: true },
   { name: 'email', label: 'البريد الإلكتروني', type: 'email' as const, required: true },
