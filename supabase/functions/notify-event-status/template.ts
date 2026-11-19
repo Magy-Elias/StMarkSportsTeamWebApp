@@ -109,6 +109,64 @@ function detailRows(event: StatusEmailEvent): [string, string, string][] {
   return rows;
 }
 
+/** Event details table (label column + value column, striped rows). */
+function detailsTableHtml(rows: [string, string, string][]): string {
+  return `
+    <div style="margin:24px 0 8px;color:${NAVY};font-weight:700;font-size:15px;">تفاصيل الحدث</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
+      ${rows
+        .map(
+          ([label, value], i) => `
+      <tr style="background:${i % 2 ? STRIPE : '#ffffff'};">
+        <td style="padding:10px 14px;color:${MUTED};font-size:14px;width:38%;vertical-align:top;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};border-left:1px solid ${BORDER};">${label}</td>
+        <td style="padding:10px 14px;color:${NAVY};font-size:15px;font-weight:600;vertical-align:top;white-space:pre-wrap;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};">${value}</td>
+      </tr>`,
+        )
+        .join('')}
+    </table>`;
+}
+
+/** The ONE99 email frame: navy header with logo, white card, English line, footer. */
+function emailShell(subject: string, logo: string, main: string, englishLine: string): string {
+  return `<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:0;background:#F3F7FC;font-family:Tahoma,'Segoe UI',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F3F7FC;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${BORDER};">
+        <tr>
+          <td style="background:${NAVY};padding:26px 24px;text-align:center;">
+            ${logo}
+            <div style="color:#ffffff;font-size:20px;font-weight:700;font-family:Arial,sans-serif;" dir="ltr">ONE99 Sports Team</div>
+          </td>
+        </tr>
+        <tr>
+          <td dir="rtl" style="padding:28px 28px 8px;text-align:right;">
+            ${main}
+          </td>
+        </tr>
+        <tr>
+          <td dir="ltr" style="padding:18px 28px 26px;text-align:left;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:${MUTED};">
+            <div style="border-top:1px dashed ${BORDER};padding-top:14px;">${englishLine}</div>
+          </td>
+        </tr>
+      </table>
+      <div style="max-width:600px;margin:14px auto 0;font-size:12px;color:${MUTED};font-family:Arial,sans-serif;text-align:center;" dir="ltr">
+        ONE99 Sports Team · St. Mark
+      </div>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+/** ONE99 logo, embedded in the email (not loaded from the website). */
+const logoHtml = (withLogo: boolean) =>
+  withLogo
+    ? `<img src="cid:${LOGO_CID}" width="76" height="76" alt="ONE99 Sports Team" style="display:block;margin:0 auto 12px;border:0;border-radius:50%;background:#ffffff;padding:4px;">`
+    : '';
+
 /**
  * Builds the subject, HTML and plain-text versions of the email.
  * `withLogo` = the ONE99 logo is attached inline (Content-ID LOGO_CID).
@@ -124,20 +182,7 @@ export function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withL
     ? `ONE99 Sports Team | تمت الموافقة على حدثك: ${event.title}`
     : `ONE99 Sports Team | تحديث بخصوص حدثك: ${event.title}`;
 
-  // Event details table: label column + value column, striped rows.
-  const table = `
-    <div style="margin:24px 0 8px;color:${NAVY};font-weight:700;font-size:15px;">تفاصيل الحدث</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
-      ${rows
-        .map(
-          ([label, value], i) => `
-      <tr style="background:${i % 2 ? STRIPE : '#ffffff'};">
-        <td style="padding:10px 14px;color:${MUTED};font-size:14px;width:38%;vertical-align:top;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};border-left:1px solid ${BORDER};">${label}</td>
-        <td style="padding:10px 14px;color:${NAVY};font-size:15px;font-weight:600;vertical-align:top;white-space:pre-wrap;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};">${value}</td>
-      </tr>`,
-        )
-        .join('')}
-    </table>`;
+  const table = detailsTableHtml(rows);
 
   const statusBadge = approved
     ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#E6F6EF;color:#0F8A5F;font-weight:700;font-size:14px;">✓ تمت الموافقة</span>`
@@ -174,26 +219,9 @@ export function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withL
     ? `Your event “${title}” on ${esc(enDate(event.event_date))} has been <strong>approved</strong>. We’ll start preparing for it and a team member will contact you soon.`
     : `We’re sorry, your event “${title}” on ${esc(enDate(event.event_date))} could not be approved this time.${event.decline_reason ? ` Reason: ${esc(event.decline_reason)}` : ''}`;
 
-  // ONE99 logo, embedded in the email (not loaded from the website).
-  const logo = withLogo
-    ? `<img src="cid:${LOGO_CID}" width="76" height="76" alt="ONE99 Sports Team" style="display:block;margin:0 auto 12px;border:0;border-radius:50%;background:#ffffff;padding:4px;">`
-    : '';
+  const logo = logoHtml(withLogo);
 
-  const html = `<!doctype html>
-<html lang="ar" dir="rtl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#F3F7FC;font-family:Tahoma,'Segoe UI',Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F3F7FC;padding:24px 12px;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${BORDER};">
-        <tr>
-          <td style="background:${NAVY};padding:26px 24px;text-align:center;">
-            ${logo}
-            <div style="color:#ffffff;font-size:20px;font-weight:700;font-family:Arial,sans-serif;" dir="ltr">ONE99 Sports Team</div>
-          </td>
-        </tr>
-        <tr>
-          <td dir="rtl" style="padding:28px 28px 8px;text-align:right;">
+  const main = `
             ${statusBadge}
             <p style="margin:18px 0 0;font-size:17px;color:${NAVY};font-weight:700;">مرحبًا${greetingName}،</p>
             <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:${NAVY};">${intro}</p>
@@ -203,22 +231,8 @@ export function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withL
             <div style="margin:24px 0 0;font-size:14px;line-height:1.7;color:${MUTED};">
               <div style="margin-bottom:4px;">للاستفسار، تواصل مع:</div>
               ${contacts}
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td dir="ltr" style="padding:18px 28px 26px;text-align:left;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:${MUTED};">
-            <div style="border-top:1px dashed ${BORDER};padding-top:14px;">${englishLine}</div>
-          </td>
-        </tr>
-      </table>
-      <div style="max-width:600px;margin:14px auto 0;font-size:12px;color:${MUTED};font-family:Arial,sans-serif;text-align:center;" dir="ltr">
-        ONE99 Sports Team · St. Mark
-      </div>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+            </div>`;
+  const html = emailShell(subject, logo, main, englishLine);
 
   const text = [
     'ONE99 Sports Team',
@@ -238,4 +252,45 @@ export function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withL
   ].join('\n');
 
   return { subject, html, text };
+}
+
+/** Extra fields for the team's "new request" email. */
+export type NewEventEmailEvent = StatusEmailEvent & { id?: string };
+
+/**
+ * Email to the ONE99 team when someone submits Event Registration: all the
+ * event's details in a table and a button to Events Pending.
+ */
+export function buildNewEventEmail(event: NewEventEmailEvent, siteUrl: string, withLogo = true): StatusEmail {
+  const site = siteUrl.replace(/\/+$/, '');
+  const title = esc(event.title);
+  const rows = detailRows(event);
+  const subject = `ONE99 Sports Team | طلب حدث جديد: ${event.title}`;
+
+  const badge = `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#FFF4E0;color:#A15C07;font-weight:700;font-size:14px;">طلب جديد · بانتظار الموافقة</span>`;
+  const review = site
+    ? `
+      <p style="margin:22px 0 0;">
+        <a href="${site}/pending" style="display:inline-block;padding:11px 22px;border-radius:10px;background:${BLUE};color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;">مراجعة الطلب في Events Pending</a>
+      </p>`
+    : '';
+  const main = `
+            ${badge}
+            <p style="margin:18px 0 0;font-size:17px;color:${NAVY};font-weight:700;">طلب حدث جديد</p>
+            <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:${NAVY};">تم استلام طلب حدث جديد من خلال نموذج تسجيل الأحداث، وهو بانتظار المراجعة والموافقة.${event.email ? ' يمكنك الرد على هذا البريد للتواصل مع مقدم الطلب مباشرة.' : ''}</p>
+            ${detailsTableHtml(rows)}
+            ${review}`;
+  const englishLine = `New event request “${title}” (${esc(enDate(event.event_date))}) was submitted through Event Registration and is waiting for approval.`;
+
+  const text = [
+    'ONE99 Sports Team',
+    '',
+    'طلب حدث جديد — بانتظار الموافقة',
+    '',
+    'تفاصيل الحدث:',
+    ...rows.map(([label, , plain]) => `${label}: ${plain}`),
+    ...(site ? ['', `مراجعة الطلب: ${site}/pending`] : []),
+  ].join('\n');
+
+  return { subject, html: emailShell(subject, logoHtml(withLogo), main, englishLine), text };
 }

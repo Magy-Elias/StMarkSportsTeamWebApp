@@ -34,3 +34,16 @@ export async function sendStatusEmail(eventId: string): Promise<EmailResult> {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+/**
+ * Tells the ONE99 team (one.99.stmark@gmail.com) about a new Event Registration
+ * submission. Works without login, but the function only sends for a genuinely
+ * new event, once. Never throws: the submission is saved either way.
+ */
+export async function notifyTeamOfSubmission(eventId: string): Promise<void> {
+  try {
+    await supabase.functions.invoke('notify-event-status', { body: { event_id: eventId, kind: 'submitted' } });
+  } catch {
+    // Ignore: the visitor's submission was saved; the team can still see it in Events Pending.
+  }
+}

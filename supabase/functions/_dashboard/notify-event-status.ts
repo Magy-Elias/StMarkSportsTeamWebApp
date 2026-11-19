@@ -8,6 +8,8 @@
 // Emails the event's contact (البريد الإلكتروني from Event Registration) when the
 // event is approved or declined: ONE99 logo, a fixed message (approved) or the
 // saved decline message (declined), and all the event details in a table.
+// Also emails the ONE99 team (TEAM_EMAIL, default one.99.stmark@gmail.com) when
+// someone submits Event Registration (body { event_id, kind: "submitted" }).
 // Sent over SMTP from the team's email account (e.g. Gmail). The logo is loaded
 // from SITE_URL/logo-192.png when sending and embedded in the email.
 //
@@ -128,6 +130,64 @@ function detailRows(event: StatusEmailEvent): [string, string, string][] {
   return rows;
 }
 
+/** Event details table (label column + value column, striped rows). */
+function detailsTableHtml(rows: [string, string, string][]): string {
+  return `
+    <div style="margin:24px 0 8px;color:${NAVY};font-weight:700;font-size:15px;">تفاصيل الحدث</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
+      ${rows
+        .map(
+          ([label, value], i) => `
+      <tr style="background:${i % 2 ? STRIPE : '#ffffff'};">
+        <td style="padding:10px 14px;color:${MUTED};font-size:14px;width:38%;vertical-align:top;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};border-left:1px solid ${BORDER};">${label}</td>
+        <td style="padding:10px 14px;color:${NAVY};font-size:15px;font-weight:600;vertical-align:top;white-space:pre-wrap;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};">${value}</td>
+      </tr>`,
+        )
+        .join('')}
+    </table>`;
+}
+
+/** The ONE99 email frame: navy header with logo, white card, English line, footer. */
+function emailShell(subject: string, logo: string, main: string, englishLine: string): string {
+  return `<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:0;background:#F3F7FC;font-family:Tahoma,'Segoe UI',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F3F7FC;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${BORDER};">
+        <tr>
+          <td style="background:${NAVY};padding:26px 24px;text-align:center;">
+            ${logo}
+            <div style="color:#ffffff;font-size:20px;font-weight:700;font-family:Arial,sans-serif;" dir="ltr">ONE99 Sports Team</div>
+          </td>
+        </tr>
+        <tr>
+          <td dir="rtl" style="padding:28px 28px 8px;text-align:right;">
+            ${main}
+          </td>
+        </tr>
+        <tr>
+          <td dir="ltr" style="padding:18px 28px 26px;text-align:left;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:${MUTED};">
+            <div style="border-top:1px dashed ${BORDER};padding-top:14px;">${englishLine}</div>
+          </td>
+        </tr>
+      </table>
+      <div style="max-width:600px;margin:14px auto 0;font-size:12px;color:${MUTED};font-family:Arial,sans-serif;text-align:center;" dir="ltr">
+        ONE99 Sports Team · St. Mark
+      </div>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+/** ONE99 logo, embedded in the email (not loaded from the website). */
+const logoHtml = (withLogo: boolean) =>
+  withLogo
+    ? `<img src="cid:${LOGO_CID}" width="76" height="76" alt="ONE99 Sports Team" style="display:block;margin:0 auto 12px;border:0;border-radius:50%;background:#ffffff;padding:4px;">`
+    : '';
+
 /**
  * Builds the subject, HTML and plain-text versions of the email.
  * `withLogo` = the ONE99 logo is attached inline (Content-ID LOGO_CID).
@@ -143,20 +203,7 @@ function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withLogo = t
     ? `ONE99 Sports Team | تمت الموافقة على حدثك: ${event.title}`
     : `ONE99 Sports Team | تحديث بخصوص حدثك: ${event.title}`;
 
-  // Event details table: label column + value column, striped rows.
-  const table = `
-    <div style="margin:24px 0 8px;color:${NAVY};font-weight:700;font-size:15px;">تفاصيل الحدث</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
-      ${rows
-        .map(
-          ([label, value], i) => `
-      <tr style="background:${i % 2 ? STRIPE : '#ffffff'};">
-        <td style="padding:10px 14px;color:${MUTED};font-size:14px;width:38%;vertical-align:top;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};border-left:1px solid ${BORDER};">${label}</td>
-        <td style="padding:10px 14px;color:${NAVY};font-size:15px;font-weight:600;vertical-align:top;white-space:pre-wrap;border-bottom:${i < rows.length - 1 ? `1px solid ${BORDER}` : 'none'};">${value}</td>
-      </tr>`,
-        )
-        .join('')}
-    </table>`;
+  const table = detailsTableHtml(rows);
 
   const statusBadge = approved
     ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#E6F6EF;color:#0F8A5F;font-weight:700;font-size:14px;">✓ تمت الموافقة</span>`
@@ -193,26 +240,9 @@ function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withLogo = t
     ? `Your event “${title}” on ${esc(enDate(event.event_date))} has been <strong>approved</strong>. We’ll start preparing for it and a team member will contact you soon.`
     : `We’re sorry, your event “${title}” on ${esc(enDate(event.event_date))} could not be approved this time.${event.decline_reason ? ` Reason: ${esc(event.decline_reason)}` : ''}`;
 
-  // ONE99 logo, embedded in the email (not loaded from the website).
-  const logo = withLogo
-    ? `<img src="cid:${LOGO_CID}" width="76" height="76" alt="ONE99 Sports Team" style="display:block;margin:0 auto 12px;border:0;border-radius:50%;background:#ffffff;padding:4px;">`
-    : '';
+  const logo = logoHtml(withLogo);
 
-  const html = `<!doctype html>
-<html lang="ar" dir="rtl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#F3F7FC;font-family:Tahoma,'Segoe UI',Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F3F7FC;padding:24px 12px;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${BORDER};">
-        <tr>
-          <td style="background:${NAVY};padding:26px 24px;text-align:center;">
-            ${logo}
-            <div style="color:#ffffff;font-size:20px;font-weight:700;font-family:Arial,sans-serif;" dir="ltr">ONE99 Sports Team</div>
-          </td>
-        </tr>
-        <tr>
-          <td dir="rtl" style="padding:28px 28px 8px;text-align:right;">
+  const main = `
             ${statusBadge}
             <p style="margin:18px 0 0;font-size:17px;color:${NAVY};font-weight:700;">مرحبًا${greetingName}،</p>
             <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:${NAVY};">${intro}</p>
@@ -222,22 +252,8 @@ function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withLogo = t
             <div style="margin:24px 0 0;font-size:14px;line-height:1.7;color:${MUTED};">
               <div style="margin-bottom:4px;">للاستفسار، تواصل مع:</div>
               ${contacts}
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td dir="ltr" style="padding:18px 28px 26px;text-align:left;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:${MUTED};">
-            <div style="border-top:1px dashed ${BORDER};padding-top:14px;">${englishLine}</div>
-          </td>
-        </tr>
-      </table>
-      <div style="max-width:600px;margin:14px auto 0;font-size:12px;color:${MUTED};font-family:Arial,sans-serif;text-align:center;" dir="ltr">
-        ONE99 Sports Team · St. Mark
-      </div>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+            </div>`;
+  const html = emailShell(subject, logo, main, englishLine);
 
   const text = [
     'ONE99 Sports Team',
@@ -259,6 +275,47 @@ function buildStatusEmail(event: StatusEmailEvent, siteUrl: string, withLogo = t
   return { subject, html, text };
 }
 
+/** Extra fields for the team's "new request" email. */
+type NewEventEmailEvent = StatusEmailEvent & { id?: string };
+
+/**
+ * Email to the ONE99 team when someone submits Event Registration: all the
+ * event's details in a table and a button to Events Pending.
+ */
+function buildNewEventEmail(event: NewEventEmailEvent, siteUrl: string, withLogo = true): StatusEmail {
+  const site = siteUrl.replace(/\/+$/, '');
+  const title = esc(event.title);
+  const rows = detailRows(event);
+  const subject = `ONE99 Sports Team | طلب حدث جديد: ${event.title}`;
+
+  const badge = `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#FFF4E0;color:#A15C07;font-weight:700;font-size:14px;">طلب جديد · بانتظار الموافقة</span>`;
+  const review = site
+    ? `
+      <p style="margin:22px 0 0;">
+        <a href="${site}/pending" style="display:inline-block;padding:11px 22px;border-radius:10px;background:${BLUE};color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;">مراجعة الطلب في Events Pending</a>
+      </p>`
+    : '';
+  const main = `
+            ${badge}
+            <p style="margin:18px 0 0;font-size:17px;color:${NAVY};font-weight:700;">طلب حدث جديد</p>
+            <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:${NAVY};">تم استلام طلب حدث جديد من خلال نموذج تسجيل الأحداث، وهو بانتظار المراجعة والموافقة.${event.email ? ' يمكنك الرد على هذا البريد للتواصل مع مقدم الطلب مباشرة.' : ''}</p>
+            ${detailsTableHtml(rows)}
+            ${review}`;
+  const englishLine = `New event request “${title}” (${esc(enDate(event.event_date))}) was submitted through Event Registration and is waiting for approval.`;
+
+  const text = [
+    'ONE99 Sports Team',
+    '',
+    'طلب حدث جديد — بانتظار الموافقة',
+    '',
+    'تفاصيل الحدث:',
+    ...rows.map(([label, , plain]) => `${label}: ${plain}`),
+    ...(site ? ['', `مراجعة الطلب: ${site}/pending`] : []),
+  ].join('\n');
+
+  return { subject, html: emailShell(subject, logoHtml(withLogo), main, englishLine), text };
+}
+
 // ------------------------------------------------------------------ server ---
 
 const cors = {
@@ -268,6 +325,12 @@ const cors = {
 };
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+
+const EVENT_COLUMNS =
+  'title, status, decline_reason, event_date, day_name, location, goal, participants_count, responsible_person, phone, email, remarks, schedule';
+
+/** Who gets the "new request" email (secret TEAM_EMAIL can change it). */
+const teamEmail = () => Deno.env.get('TEAM_EMAIL') || 'one.99.stmark@gmail.com';
 
 /** The logo as base64 from the website, or null if it can't be loaded (email is sent without it). */
 async function loadLogo(site: string): Promise<string | null> {
@@ -284,29 +347,95 @@ async function loadLogo(site: string): Promise<string | null> {
   }
 }
 
+/** Sends one email over SMTP (SMTP_* secrets), with the logo inline if given. */
+async function send(mail: { to: string; subject: string; html: string; text: string; replyTo?: string }, logo: string | null) {
+  const user = Deno.env.get('SMTP_USER');
+  const pass = Deno.env.get('SMTP_PASS');
+  if (!user || !pass) throw new Error('Email is not set up yet (SMTP_USER / SMTP_PASS missing)');
+  const port = Number(Deno.env.get('SMTP_PORT') || '465');
+  const transporter = nodemailer.createTransport({
+    host: Deno.env.get('SMTP_HOST') || 'smtp.gmail.com',
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+  await transporter.sendMail({
+    from: Deno.env.get('EMAIL_FROM') || `ONE99 Sports Team <${user}>`,
+    to: mail.to,
+    subject: mail.subject,
+    html: mail.html,
+    text: mail.text,
+    ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
+    attachments: logo ? [{ filename: 'one99-logo.png', content: logo, encoding: 'base64', cid: LOGO_CID }] : [],
+  });
+}
+
+/**
+ * "New request" email to the ONE99 team after someone submits Event
+ * Registration. No login needed (visitors submit the form), so it only works
+ * for a genuinely new event: still pending, created in the last 15 minutes and
+ * not announced yet. Each submission sends exactly one email.
+ */
+async function notifyTeam(eventId: string): Promise<Response> {
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { data: event, error } = await admin
+    .from('events')
+    .select(`id, created_at, team_notified_at, ${EVENT_COLUMNS}`)
+    .eq('id', eventId)
+    .maybeSingle();
+  if (error) return json(500, { error: error.message });
+  if (!event) return json(404, { error: 'Event not found' });
+  if (event.status !== 'pending') return json(400, { error: 'Only new (pending) events are announced' });
+  if (event.team_notified_at) return json(200, { sent: false, reason: 'already notified' });
+  if (Date.now() - new Date(event.created_at).getTime() > 15 * 60 * 1000) {
+    return json(400, { error: 'Only events submitted in the last 15 minutes are announced' });
+  }
+
+  // Claim it first, so two calls at once can't both send.
+  const { data: claimed, error: claimError } = await admin
+    .from('events')
+    .update({ team_notified_at: new Date().toISOString() })
+    .eq('id', eventId)
+    .is('team_notified_at', null)
+    .select('id');
+  if (claimError) return json(500, { error: claimError.message });
+  if (!claimed?.length) return json(200, { sent: false, reason: 'already notified' });
+
+  const site = Deno.env.get('SITE_URL') ?? '';
+  const logo = await loadLogo(site);
+  const email = buildNewEventEmail(event, site, logo !== null);
+  try {
+    // "Reply" goes to the person who submitted the request.
+    await send({ to: teamEmail(), ...email, replyTo: event.email || undefined }, logo);
+  } catch (e) {
+    await admin.from('events').update({ team_notified_at: null }).eq('id', eventId);
+    return json(502, { error: `Could not send email: ${e instanceof Error ? e.message : String(e)}` });
+  }
+  return json(200, { sent: true, to: teamEmail() });
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
 
-  // Only logged-in team members (not the public anon key) may send emails.
+  const body = (await req.json().catch(() => ({}))) as { event_id?: string; kind?: string };
+  if (!body.event_id) return json(400, { error: 'event_id is required' });
+
+  // New Event Registration submission → email the team (no login needed).
+  if (body.kind === 'submitted') return notifyTeam(body.event_id);
+
+  // Approved / declined → email the event's contact. Only logged-in team
+  // members (not the public anon key) may send these.
   const authHeader = req.headers.get('Authorization') ?? '';
   const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!token) return json(401, { error: 'Login required' });
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: { headers: { Authorization: authHeader } },
   });
   const { data: userData } = await supabase.auth.getUser(token);
   if (!userData?.user) return json(401, { error: 'Login required' });
 
-  const body = (await req.json().catch(() => ({}))) as { event_id?: string };
-  if (!body.event_id) return json(400, { error: 'event_id is required' });
-
-  const { data: event, error } = await supabase
-    .from('events')
-    .select(
-      'title, status, decline_reason, event_date, day_name, location, goal, participants_count, responsible_person, phone, email, remarks, schedule',
-    )
-    .eq('id', body.event_id)
-    .maybeSingle();
+  const { data: event, error } = await supabase.from('events').select(EVENT_COLUMNS).eq('id', body.event_id).maybeSingle();
   if (error) return json(500, { error: error.message });
   if (!event) return json(404, { error: 'Event not found' });
   if (event.status !== 'approved' && event.status !== 'declined') {
@@ -314,35 +443,13 @@ Deno.serve(async (req) => {
   }
   if (!event.email) return json(422, { error: 'This event has no email address' });
 
-  const user = Deno.env.get('SMTP_USER');
-  const pass = Deno.env.get('SMTP_PASS');
-  if (!user || !pass) return json(500, { error: 'Email is not set up yet (SMTP_USER / SMTP_PASS missing)' });
-
   const site = Deno.env.get('SITE_URL') ?? '';
   const logo = await loadLogo(site);
   const email = buildStatusEmail(event, site, logo !== null);
-  const port = Number(Deno.env.get('SMTP_PORT') || '465');
-  const replyTo = Deno.env.get('EMAIL_REPLY_TO');
-
   try {
-    const transporter = nodemailer.createTransport({
-      host: Deno.env.get('SMTP_HOST') || 'smtp.gmail.com',
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
-    await transporter.sendMail({
-      from: Deno.env.get('EMAIL_FROM') || `ONE99 Sports Team <${user}>`,
-      to: event.email,
-      subject: email.subject,
-      html: email.html,
-      text: email.text,
-      ...(replyTo ? { replyTo } : {}),
-      attachments: logo ? [{ filename: 'one99-logo.png', content: logo, encoding: 'base64', cid: LOGO_CID }] : [],
-    });
+    await send({ to: event.email, ...email, replyTo: Deno.env.get('EMAIL_REPLY_TO') || undefined }, logo);
   } catch (e) {
     return json(502, { error: `Could not send email: ${e instanceof Error ? e.message : String(e)}` });
   }
-
   return json(200, { sent: true, to: event.email });
 });
