@@ -44,7 +44,9 @@ Deno.serve(async (req) => {
   // Read the event as the logged-in user (the database's access rules apply).
   const { data: event, error } = await supabase
     .from('events')
-    .select('title, email, status, decline_reason, event_date, location, responsible_person, schedule')
+    .select(
+      'title, status, decline_reason, event_date, day_name, location, goal, participants_count, responsible_person, phone, email, remarks, schedule',
+    )
     .eq('id', body.event_id)
     .maybeSingle();
   if (error) return json(500, { error: error.message });

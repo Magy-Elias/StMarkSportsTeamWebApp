@@ -14,12 +14,18 @@ export async function sendStatusEmail(eventId: string): Promise<EmailResult> {
       body: { event_id: eventId },
     });
     if (error) {
-      // The function's own explanation (e.g. "This event has no email address").
       let message = error.message;
       const context = (error as { context?: unknown }).context;
       if (context instanceof Response) {
-        const body = (await context.json().catch(() => null)) as { error?: string } | null;
-        if (body?.error) message = body.error;
+        const body = (await context.json().catch(() => null)) as { code?: string; error?: string; message?: string } | null;
+        // Supabase's own reply when the function hasn't been deployed yet.
+        if (context.status === 404 && body?.code === 'NOT_FOUND') {
+          return { ok: false, error: 'the email function is not set up in Supabase yet (notify-event-status not found)' };
+        }
+        // Otherwise the function's own explanation (e.g. "This event has no email address").
+        if (body?.error || body?.message) message = (body.error ?? body.message) as string;
+      } else if (error.name === 'FunctionsFetchError') {
+        message = 'could not reach the email function in Supabase (is it deployed?)';
       }
       return { ok: false, error: message };
     }
