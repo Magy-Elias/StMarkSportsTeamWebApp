@@ -7,6 +7,7 @@ import DatePicker from '@/components/DatePicker';
 import ScheduleInput from '@/components/ScheduleInput';
 import { emptyFormSlot, fromFormSlots, parseSchedule, toFormSlots, type FormSlot, type ScheduleRules } from '@/lib/schedule';
 import { supabase } from '@/lib/supabase/client';
+import { notifyTeamOfSubmission } from '@/lib/notify';
 
 // 'schedule' = rows of date + from + to (see components/ScheduleInput.tsx).
 export type FieldType = 'text' | 'date' | 'time' | 'textarea' | 'select' | 'number' | 'tel' | 'email' | 'schedule';
@@ -75,6 +76,8 @@ type EventFormProps = {
   logoRight?: string;
   /** New events: page to go to after saving (gets ?id=<new event id>). */
   submittedPath?: string;
+  /** New events: email the ONE99 team about the new request after saving. */
+  notifyTeam?: boolean;
 };
 
 export default function EventForm({
@@ -89,6 +92,7 @@ export default function EventForm({
   logoLeft,
   logoRight,
   submittedPath,
+  notifyTeam = false,
 }: EventFormProps) {
   const router = useRouter();
   const editing = Boolean(eventId);
@@ -239,6 +243,8 @@ export default function EventForm({
     const id = crypto.randomUUID();
     const { error } = await supabase.from('events').insert({ ...defaults, ...fieldValues, id });
     if (error) return setStatus({ state: 'error', message: saveErrorMessage(error), id: '' });
+    // Tell the team about the new request (doesn't hold up the visitor).
+    if (notifyTeam) void notifyTeamOfSubmission(id);
     if (submittedPath) {
       // Like Google Forms: leave the form for a confirmation page. replace() so
       // the browser's Back button doesn't return to the submitted form.

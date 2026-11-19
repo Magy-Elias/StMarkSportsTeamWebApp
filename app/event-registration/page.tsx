@@ -15,6 +15,7 @@ export default function EventRegistration() {
       logoLeft="/logo.svg"
       logoRight="/st-mark-logo.png"
       submittedPath="/event-registration/submitted"
+      notifyTeam
     />
   );
 }

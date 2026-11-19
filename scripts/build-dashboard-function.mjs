@@ -30,6 +30,8 @@ const header = `// notify-event-status: single-file version to paste into the Su
 // Emails the event's contact (البريد الإلكتروني from Event Registration) when the
 // event is approved or declined: ONE99 logo, a fixed message (approved) or the
 // saved decline message (declined), and all the event details in a table.
+// Also emails the ONE99 team (TEAM_EMAIL, default one.99.stmark@gmail.com) when
+// someone submits Event Registration (body { event_id, kind: "submitted" }).
 // Sent over SMTP from the team's email account (e.g. Gmail). The logo is loaded
 // from SITE_URL/logo-192.png when sending and embedded in the email.
 //
@@ -58,6 +60,12 @@ const cors = {
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
+const EVENT_COLUMNS =
+  'title, status, decline_reason, event_date, day_name, location, goal, participants_count, responsible_person, phone, email, remarks, schedule';
+
+/** Who gets the "new request" email (secret TEAM_EMAIL can change it). */
+const teamEmail = () => Deno.env.get('TEAM_EMAIL') || 'one.99.stmark@gmail.com';
+
 /** The logo as base64 from the website, or null if it can't be loaded (email is sent without it). */
 async function loadLogo(site: string): Promise<string | null> {
   if (!site) return null;
@@ -73,29 +81,95 @@ async function loadLogo(site: string): Promise<string | null> {
   }
 }
 
+/** Sends one email over SMTP (SMTP_* secrets), with the logo inline if given. */
+async function send(mail: { to: string; subject: string; html: string; text: string; replyTo?: string }, logo: string | null) {
+  const user = Deno.env.get('SMTP_USER');
+  const pass = Deno.env.get('SMTP_PASS');
+  if (!user || !pass) throw new Error('Email is not set up yet (SMTP_USER / SMTP_PASS missing)');
+  const port = Number(Deno.env.get('SMTP_PORT') || '465');
+  const transporter = nodemailer.createTransport({
+    host: Deno.env.get('SMTP_HOST') || 'smtp.gmail.com',
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+  await transporter.sendMail({
+    from: Deno.env.get('EMAIL_FROM') || \`ONE99 Sports Team <\${user}>\`,
+    to: mail.to,
+    subject: mail.subject,
+    html: mail.html,
+    text: mail.text,
+    ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
+    attachments: logo ? [{ filename: 'one99-logo.png', content: logo, encoding: 'base64', cid: LOGO_CID }] : [],
+  });
+}
+
+/**
+ * "New request" email to the ONE99 team after someone submits Event
+ * Registration. No login needed (visitors submit the form), so it only works
+ * for a genuinely new event: still pending, created in the last 15 minutes and
+ * not announced yet. Each submission sends exactly one email.
+ */
+async function notifyTeam(eventId: string): Promise<Response> {
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { data: event, error } = await admin
+    .from('events')
+    .select(\`id, created_at, team_notified_at, \${EVENT_COLUMNS}\`)
+    .eq('id', eventId)
+    .maybeSingle();
+  if (error) return json(500, { error: error.message });
+  if (!event) return json(404, { error: 'Event not found' });
+  if (event.status !== 'pending') return json(400, { error: 'Only new (pending) events are announced' });
+  if (event.team_notified_at) return json(200, { sent: false, reason: 'already notified' });
+  if (Date.now() - new Date(event.created_at).getTime() > 15 * 60 * 1000) {
+    return json(400, { error: 'Only events submitted in the last 15 minutes are announced' });
+  }
+
+  // Claim it first, so two calls at once can't both send.
+  const { data: claimed, error: claimError } = await admin
+    .from('events')
+    .update({ team_notified_at: new Date().toISOString() })
+    .eq('id', eventId)
+    .is('team_notified_at', null)
+    .select('id');
+  if (claimError) return json(500, { error: claimError.message });
+  if (!claimed?.length) return json(200, { sent: false, reason: 'already notified' });
+
+  const site = Deno.env.get('SITE_URL') ?? '';
+  const logo = await loadLogo(site);
+  const email = buildNewEventEmail(event, site, logo !== null);
+  try {
+    // "Reply" goes to the person who submitted the request.
+    await send({ to: teamEmail(), ...email, replyTo: event.email || undefined }, logo);
+  } catch (e) {
+    await admin.from('events').update({ team_notified_at: null }).eq('id', eventId);
+    return json(502, { error: \`Could not send email: \${e instanceof Error ? e.message : String(e)}\` });
+  }
+  return json(200, { sent: true, to: teamEmail() });
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
 
-  // Only logged-in team members (not the public anon key) may send emails.
+  const body = (await req.json().catch(() => ({}))) as { event_id?: string; kind?: string };
+  if (!body.event_id) return json(400, { error: 'event_id is required' });
+
+  // New Event Registration submission → email the team (no login needed).
+  if (body.kind === 'submitted') return notifyTeam(body.event_id);
+
+  // Approved / declined → email the event's contact. Only logged-in team
+  // members (not the public anon key) may send these.
   const authHeader = req.headers.get('Authorization') ?? '';
   const token = authHeader.replace(/^Bearer\\s+/i, '');
+  if (!token) return json(401, { error: 'Login required' });
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: { headers: { Authorization: authHeader } },
   });
   const { data: userData } = await supabase.auth.getUser(token);
   if (!userData?.user) return json(401, { error: 'Login required' });
 
-  const body = (await req.json().catch(() => ({}))) as { event_id?: string };
-  if (!body.event_id) return json(400, { error: 'event_id is required' });
-
-  const { data: event, error } = await supabase
-    .from('events')
-    .select(
-      'title, status, decline_reason, event_date, day_name, location, goal, participants_count, responsible_person, phone, email, remarks, schedule',
-    )
-    .eq('id', body.event_id)
-    .maybeSingle();
+  const { data: event, error } = await supabase.from('events').select(EVENT_COLUMNS).eq('id', body.event_id).maybeSingle();
   if (error) return json(500, { error: error.message });
   if (!event) return json(404, { error: 'Event not found' });
   if (event.status !== 'approved' && event.status !== 'declined') {
@@ -103,36 +177,14 @@ Deno.serve(async (req) => {
   }
   if (!event.email) return json(422, { error: 'This event has no email address' });
 
-  const user = Deno.env.get('SMTP_USER');
-  const pass = Deno.env.get('SMTP_PASS');
-  if (!user || !pass) return json(500, { error: 'Email is not set up yet (SMTP_USER / SMTP_PASS missing)' });
-
   const site = Deno.env.get('SITE_URL') ?? '';
   const logo = await loadLogo(site);
   const email = buildStatusEmail(event, site, logo !== null);
-  const port = Number(Deno.env.get('SMTP_PORT') || '465');
-  const replyTo = Deno.env.get('EMAIL_REPLY_TO');
-
   try {
-    const transporter = nodemailer.createTransport({
-      host: Deno.env.get('SMTP_HOST') || 'smtp.gmail.com',
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
-    await transporter.sendMail({
-      from: Deno.env.get('EMAIL_FROM') || \`ONE99 Sports Team <\${user}>\`,
-      to: event.email,
-      subject: email.subject,
-      html: email.html,
-      text: email.text,
-      ...(replyTo ? { replyTo } : {}),
-      attachments: logo ? [{ filename: 'one99-logo.png', content: logo, encoding: 'base64', cid: LOGO_CID }] : [],
-    });
+    await send({ to: event.email, ...email, replyTo: Deno.env.get('EMAIL_REPLY_TO') || undefined }, logo);
   } catch (e) {
     return json(502, { error: \`Could not send email: \${e instanceof Error ? e.message : String(e)}\` });
   }
-
   return json(200, { sent: true, to: event.email });
 });
 `;
