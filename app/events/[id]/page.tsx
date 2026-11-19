@@ -10,6 +10,7 @@ import type { Event } from '@/lib/types';
 const DETAIL_FIELDS = [
   { key: 'responsible_person', label: 'الشخص المسؤول' },
   { key: 'phone', label: 'رقم التليفون', format: (v: string) => v && <a href={`tel:${v}`} dir="ltr">{v}</a> },
+  { key: 'email', label: 'البريد الإلكتروني', format: (v: string) => v && <a href={`mailto:${v}`} dir="ltr">{v}</a> },
   { key: 'day_name', label: 'اسم اليوم' },
   { key: 'event_date', label: 'تاريخ' },
   { key: 'goal', label: 'الهدف' },
