@@ -737,3 +737,6 @@ main.no-sidebar { margin-left: 0; }
 .row-issue { margin: 0; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.88rem; }
 .row-issue.is-error { color: var(--danger); background: var(--danger-tint); font-weight: 500; }
 .row-issue.is-todo { color: var(--muted); background: #F1F5FB; }
+
+/* Event details: Edit + Delete side by side */
+.detail-actions { display: flex; gap: 10px; flex-wrap: wrap; }
