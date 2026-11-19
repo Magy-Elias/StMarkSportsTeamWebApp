@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import EventDetailsTable, { EVENT_DETAILS_COLUMNS, type EventDetails } from '@/components/EventDetailsTable';
 
 const emptyGame = () => ({ leader: '', name: '', description: '', tools: '' });
 const emptyPlan = () => ({ leader: '', co_leader: '', games: [emptyGame()] });
@@ -17,6 +18,8 @@ function Form2Content() {
   const eventId = searchParams.get('event') ?? '';
   const [events, setEvents] = useState<EventOption[]>([]);
   const [plan, setPlan] = useState(emptyPlan());
+  // The selected event's Event Registration details, shown read-only above the plan.
+  const [details, setDetails] = useState<EventDetails | null>(null);
   const [status, setStatus] = useState<{ state: 'idle' | 'saving' | 'error' | 'saved'; message: string | null }>({
     state: 'idle',
     message: null,
@@ -34,15 +37,17 @@ function Form2Content() {
   }, []);
 
   useEffect(() => {
+    setDetails(null);
     if (!eventId) return setPlan(emptyPlan());
     supabase
       .from('events')
-      .select('leader, co_leader, games')
+      .select(`leader, co_leader, games, ${EVENT_DETAILS_COLUMNS}`)
       .eq('id', eventId)
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) return setStatus({ state: 'error', message: error.message });
         if (!data) return setStatus({ state: 'error', message: 'Event not found.' });
+        setDetails(data);
         setPlan({
           leader: data.leader ?? '',
           co_leader: data.co_leader ?? '',
@@ -107,6 +112,7 @@ function Form2Content() {
 
         {eventId && (
           <>
+            {details && <EventDetailsTable event={details} />}
             <label>
               <span>Leader</span>
               <input value={plan.leader} onChange={set('leader')} />
