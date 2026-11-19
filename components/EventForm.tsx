@@ -24,6 +24,11 @@ export type Field = {
   /** Small note shown under the field. */
   hint?: string;
   /**
+   * A plain text box that only keeps digits (no up/down arrows; phones show the
+   * number keypad). Arabic digits (٠–٩) are converted. Saved as a number.
+   */
+  digitsOnly?: boolean;
+  /**
    * Schedule fields: show a "number of days" dropdown (1…maxDays) with this
    * field's label; the date/time rows appear only after a number is picked.
    */
@@ -191,8 +196,15 @@ export default function EventForm({
     return null;
   })();
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const field = fields.find((f) => f.name === name);
+    // Digits-only boxes: turn Arabic digits into 0–9 and drop anything else.
+    const clean = field?.digitsOnly
+      ? value.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\D/g, '')
+      : value;
+    setValues((v) => ({ ...v, [name]: clean }));
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,7 +222,7 @@ export default function EventForm({
       }
       if (tooSoon(f)) return setStatus({ state: 'error', message: TOO_SOON, id: '' });
       const v = values[f.name];
-      fieldValues[f.name] = v === '' ? null : f.type === 'number' ? Number(v) : v;
+      fieldValues[f.name] = v === '' ? null : f.type === 'number' || f.digitsOnly ? Number(v) : v;
     }
 
     if (eventId) {
@@ -332,6 +344,7 @@ export default function EventForm({
                   onChange={onChange}
                   required={f.required}
                   min={f.min}
+                  {...(f.digitsOnly ? { inputMode: 'numeric' as const, pattern: '[0-9]*', autoComplete: 'off' } : {})}
                 />
                 {f.suffix && <span className="suffix">{f.suffix}</span>}
               </div>
