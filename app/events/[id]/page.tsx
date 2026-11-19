@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { formatRange, parseSchedule } from '@/lib/schedule';
 import { EditIcon } from '@/components/icons';
+import DeleteEventButton from '@/components/DeleteEventButton';
 import { displayStatus } from '@/lib/status';
 import type { Event } from '@/lib/types';
 
@@ -53,9 +54,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <h1>{event.title}</h1>
           <span className={`status-badge ${status}`}>{STATUS_LABEL[status] ?? status}</span>
         </div>
-        <Link href={`/events/${event.id}/edit`} className="btn btn-primary">
-          <EditIcon size={17} /> Edit
-        </Link>
+        <div className="detail-actions">
+          <Link href={`/events/${event.id}/edit`} className="btn btn-primary">
+            <EditIcon size={17} /> Edit
+          </Link>
+          <DeleteEventButton eventId={event.id} eventTitle={event.title} />
+        </div>
       </div>
       {event.status === 'declined' && (
         <div className="decline-note" dir="auto">
