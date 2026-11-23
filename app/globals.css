@@ -755,3 +755,9 @@ main.no-sidebar { margin-left: 0; }
   .event-table th { width: 42%; padding: 9px 12px; }
   .event-table td { padding: 9px 12px; }
 }
+
+/* Field titles: Arabic on the right, English on the left (same line) */
+.field-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; width: 100%; }
+.field-title-en { font-family: var(--font-inter), system-ui, sans-serif; font-weight: 500; color: var(--muted); font-size: 0.9em; }
+.schedule-fieldset > .field-title { font-weight: 600; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

@@ -1,27 +1,31 @@
 import type { Field } from '@/components/EventForm';
 
+// Each field has an Arabic title (label, shown on the right) and an English one
+// (labelEn, shown on the left).
 // Form 1 fields, in the order they appear: used to add a new event (/event-registration)
 // and to edit one (/events/[id]/edit).
 // All are required except remarks: the save button stays disabled until every
 // required field is filled.
 export const FORM1_FIELDS = [
-  { name: 'title', label: 'اسم الخدمة او الاجتماع', required: true },
-  { name: 'day_name', label: 'اسم اليوم', required: true },
-  { name: 'location', label: 'المكان', required: true },
-  { name: 'goal', label: 'الهدف', type: 'textarea' as const, required: true },
+  { name: 'title', label: 'اسم الخدمة او الاجتماع', labelEn: 'Service / Meeting Name', required: true },
+  { name: 'day_name', label: 'اسم اليوم', labelEn: 'Day Name', required: true },
+  { name: 'location', label: 'المكان', labelEn: 'Location', required: true },
+  { name: 'goal', label: 'الهدف', labelEn: 'Goal', type: 'textarea' as const, required: true },
   // Plain text box that only accepts digits (stored as a whole number).
-  { name: 'participants_count', label: 'عدد المشاركين', type: 'text' as const, digitsOnly: true, required: true },
-  { name: 'responsible_person', label: 'الشخص المسؤول', required: true },
-  { name: 'phone', label: 'رقم التليفون', type: 'tel' as const, required: true },
-  { name: 'email', label: 'البريد الإلكتروني', type: 'email' as const, required: true },
+  { name: 'participants_count', label: 'عدد المشاركين', labelEn: 'Number of Participants', type: 'text' as const, digitsOnly: true, required: true },
+  { name: 'responsible_person', label: 'الشخص المسؤول', labelEn: 'Responsible Person', required: true },
+  { name: 'phone', label: 'رقم التليفون', labelEn: 'Phone Number', type: 'tel' as const, required: true },
+  { name: 'email', label: 'البريد الإلكتروني', labelEn: 'Email', type: 'email' as const, required: true },
   {
     // "Number of event days" (1–5); then one row per day: date + from / to.
     name: 'schedule',
-    label: 'Number of event days',
+    label: 'عدد أيام الحدث',
+    labelEn: 'Number of Event Days',
     type: 'schedule' as const,
     required: true,
     maxDays: 5,
     sectionLabel: 'الوقت المحدد للالعاب',
+    sectionLabelEn: 'Games Time',
     // 14-day rule, turned OFF for now (we'll need it later). To turn it back on,
     // uncomment these two lines: every day must then be at least two weeks from
     // today (earlier dates are greyed out) and the note shows under the dropdown.
@@ -32,7 +36,7 @@ export const FORM1_FIELDS = [
     dateField: 'event_date',
   },
   // Optional free-text notes.
-  { name: 'remarks', label: 'ملاحظات', type: 'textarea' as const },
+  { name: 'remarks', label: 'ملاحظات', labelEn: 'Remarks', type: 'textarea' as const },
 ] satisfies Field[];
 
 // Contact details shown at the bottom of Form 1 and on the "submitted" page.

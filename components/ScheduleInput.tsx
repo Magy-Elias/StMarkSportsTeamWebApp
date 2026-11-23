@@ -237,7 +237,12 @@ export default function ScheduleInput({
     <div className="schedule">
       {slots.map((slot, i) => (
         <div key={i} className="schedule-row">
-          {fixedCount && <div className="schedule-day-label">{word} {i + 1}</div>}
+          {fixedCount && (
+            <div className="schedule-day-label field-title">
+              <span>{word} {i + 1}</span>
+              <span className="field-title-en" dir="ltr">Day {i + 1}</span>
+            </div>
+          )}
           {/* Line 1: date */}
           <div className="schedule-date-row">
             <DatePicker
