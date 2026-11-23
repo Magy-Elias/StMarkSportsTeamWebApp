@@ -7,7 +7,7 @@ import type { Field } from '@/components/EventForm';
 // All are required except remarks: the save button stays disabled until every
 // required field is filled.
 export const FORM1_FIELDS = [
-  { name: 'title', label: 'اسم الخدمة او الاجتماع', labelEn: 'Service / Meeting Name', required: true },
+  { name: 'title', label: 'اسم الخدمة او الاجتماع / رقم Grade', labelEn: 'Service or Meeting Name / Grade Number', required: true },
   { name: 'day_name', label: 'اسم اليوم', labelEn: 'Day Name', required: true },
   { name: 'location', label: 'المكان', labelEn: 'Location', required: true },
   { name: 'goal', label: 'الهدف', labelEn: 'Goal', type: 'textarea' as const, required: true },
