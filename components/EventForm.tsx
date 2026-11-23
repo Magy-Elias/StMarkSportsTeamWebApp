@@ -14,7 +14,10 @@ export type FieldType = 'text' | 'date' | 'time' | 'textarea' | 'select' | 'numb
 
 export type Field = {
   name: string;
+  /** Arabic title, shown on the right. */
   label: string;
+  /** English title, shown on the left of the same line. */
+  labelEn?: string;
   type?: FieldType;
   required?: boolean;
   options?: string[];
@@ -36,6 +39,8 @@ export type Field = {
   maxDays?: number;
   /** Schedule fields with maxDays: title of the date/time rows section. */
   sectionLabel?: string;
+  /** English title of that section. */
+  sectionLabelEn?: string;
   /** Schedule fields: also save Day 1's date into this field (the event's main date). */
   dateField?: string;
 };
@@ -57,6 +62,27 @@ const saveErrorMessage = (error: { code?: string; message: string }) =>
     : `Could not save: ${error.message}`;
 
 const TOO_SOON = 'يجب أن يكون تاريخ الحدث بعد أسبوعين على الأقل من اليوم.';
+
+/**
+ * A field's title: Arabic on the right, English on the left (same line).
+ * Required fields get * on both; optional ones say so in both languages.
+ */
+function FieldTitle({ ar, en, required }: { ar: string; en?: string; required?: boolean }) {
+  return (
+    <span className="field-title">
+      <span>
+        {ar}
+        {required ? ' *' : <small className="optional"> (اختياري)</small>}
+      </span>
+      {en && (
+        <span className="field-title-en" dir="ltr">
+          {en}
+          {required ? ' *' : <small className="optional"> (optional)</small>}
+        </span>
+      )}
+    </span>
+  );
+}
 
 type EventFormProps = {
   title: string;
@@ -275,7 +301,7 @@ export default function EventForm({
             // "Number of event days" dropdown; the date/time rows appear once it's picked.
             <div key={f.name} className="days-field">
               <label>
-                <span>{f.label}{f.required && ' *'}</span>
+                <FieldTitle ar={f.label} en={f.labelEn} required={f.required} />
                 <select
                   name={`${f.name}-days`}
                   value={dayCounts[f.name] || ''}
@@ -291,7 +317,9 @@ export default function EventForm({
               </label>
               {dayCounts[f.name] > 0 && (
                 <fieldset className="schedule-fieldset">
-                  <legend>{f.sectionLabel ?? f.label}{f.required && ' *'}</legend>
+                  {/* Visible bilingual title; the legend keeps the section named for screen readers. */}
+                  <legend className="sr-only">{f.sectionLabel ?? f.label}</legend>
+                  <FieldTitle ar={f.sectionLabel ?? f.label} en={f.sectionLabelEn ?? f.labelEn} required={f.required} />
                   <ScheduleInput
                     value={schedules[f.name] ?? []}
                     onChange={(rows) => setSchedules((s) => ({ ...s, [f.name]: rows }))}
@@ -304,7 +332,8 @@ export default function EventForm({
           ) : f.type === 'schedule' ? (
             // Several inputs per row, so a fieldset rather than a single label.
             <fieldset key={f.name} className="schedule-fieldset">
-              <legend>{f.label}{f.required && ' *'}</legend>
+              <legend className="sr-only">{f.label}</legend>
+              <FieldTitle ar={f.label} en={f.labelEn} required={f.required} />
               <ScheduleInput
                 value={schedules[f.name] ?? []}
                 onChange={(rows) => setSchedules((s) => ({ ...s, [f.name]: rows }))}
@@ -315,7 +344,7 @@ export default function EventForm({
             // Our own calendar (not the browser's), so it isn't wrapped in a <label>:
             // clicks inside the calendar would otherwise re-trigger the open button.
             <div key={f.name} className="form-field">
-              <span>{f.label}{f.required && ' *'}</span>
+              <FieldTitle ar={f.label} en={f.labelEn} required={f.required} />
               <DatePicker
                 name={f.name}
                 label={f.label}
@@ -328,10 +357,7 @@ export default function EventForm({
             </div>
           ) : (
           <label key={f.name}>
-            <span>
-              {f.label}
-              {f.required ? ' *' : <small className="optional"> (اختياري)</small>}
-            </span>
+            <FieldTitle ar={f.label} en={f.labelEn} required={f.required} />
             {f.type === 'textarea' ? (
               <textarea name={f.name} value={values[f.name]} onChange={onChange} required={f.required} rows={4} />
             ) : f.type === 'select' ? (
@@ -370,7 +396,7 @@ export default function EventForm({
           {status.state === 'saving' ? '…' : submitLabel}
         </button>
         {problem === 'missing' && (
-          <p className="form-hint" role="status">
+          <p className="form-hint" role="status" dir="ltr">
             Fill in all fields to enable Save.
           </p>
         )}
