@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { CalendarIcon, ClockIcon, FormIcon, GamesIcon, HomeIcon, LogoutIcon } from '@/components/icons';
+import { CalendarIcon, ClockIcon, FormIcon, GamesIcon, HomeIcon, ListIcon, LogoutIcon } from '@/components/icons';
 
 export default function Sidebar({ email }: { email: string | null }) {
   const pathname = usePathname();
@@ -17,6 +17,7 @@ export default function Sidebar({ email }: { email: string | null }) {
     { href: '/', label: 'Home', Icon: HomeIcon },
     { href: '/calendar', label: 'Calendar', Icon: CalendarIcon },
     { href: '/pending', label: 'Events Pending', Icon: ClockIcon },
+    { href: '/events', label: 'Events', Icon: ListIcon },
     { href: '/event-registration', label: 'Event Registration', Icon: FormIcon },
     { href: '/form-2', label: 'Form 2', Icon: GamesIcon },
   ];
