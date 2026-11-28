@@ -173,15 +173,6 @@ main.no-sidebar { margin-left: 0; }
 .status-badge.completed { background: var(--success-tint); color: var(--success); }
 .count-badge { font-size: 0.85rem; font-weight: 600; color: var(--primary); background: var(--color-blue-tint); padding: 6px 12px; border-radius: 999px; }
 
-/* Sub-event (per-day) status chip shown inline in event details. */
-.sub-event-status {
-  font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; margin-left: 6px;
-}
-.sub-event-status.pending { background: var(--warning-tint); color: var(--warning); }
-.sub-event-status.approved { background: var(--color-blue-tint); color: var(--primary); }
-.sub-event-status.completed { background: var(--success-tint); color: var(--success); }
-.sub-event-status.declined { background: var(--danger-tint); color: var(--danger); }
-
 /* ==========================================================================
    Home
    ========================================================================== */
@@ -482,17 +473,6 @@ main.no-sidebar { margin-left: 0; }
   background: #fff;
 }
 .schedule-title-input::placeholder { color: var(--muted); }
-
-.schedule-status-row { margin-top: 4px; display: flex; align-items: center; gap: 8px; }
-.schedule-status-label { font-size: 0.85rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
-.schedule-status-select {
-  padding: 6px 10px;
-  font-size: 0.9rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: #fff;
-  min-width: 120px;
-}
 
 .time-picker { display: flex; flex-direction: column; gap: 6px; }
 .time-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }

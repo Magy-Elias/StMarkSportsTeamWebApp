@@ -21,13 +21,6 @@ type PendingEvent = {
 const formatDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'بانتظار الموافقة',
-  approved: 'تمت الموافقة',
-  completed: 'مكتمل',
-  declined: 'مرفوض',
-};
-
 export default function Pending() {
   const [events, setEvents] = useState<PendingEvent[]>([]);
   // Approved on this visit: the card stays, marked approved, with Form 2 enabled.
@@ -129,7 +122,7 @@ export default function Pending() {
               <ul className="meta-list">
                 <li><CalendarIcon size={16} /> {formatDate(ev.event_date)}</li>
                 {slots.map((s, i) => (
-                  <li key={i}><ClockIcon size={16} /> {s.title ? `${s.title} · ` : ''}{formatDate(s.date)} · <span dir="ltr">{formatRange(s)}</span>{s.status ? ` <span className="sub-event-status sub-event-status-${s.status}">${STATUS_LABEL[s.status] ?? s.status}</span>` : ''}</li>
+                  <li key={i}><ClockIcon size={16} /> {s.title ? `${s.title} · ` : ''}{formatDate(s.date)} · <span dir="ltr">{formatRange(s)}</span></li>
                 ))}
                 {ev.location && <li><PinIcon size={16} /> <span dir="auto">{ev.location}</span></li>}
                 {ev.responsible_person && <li><UserIcon size={16} /> <span dir="auto">{ev.responsible_person}</span></li>}
