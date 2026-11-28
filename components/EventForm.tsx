@@ -197,7 +197,6 @@ export default function EventForm({
           // When editing, the event's existing dates stay allowed.
           allowedDates: editing ? parseSchedule(initialValues?.[f.name] ?? '').map((d) => d.date) : [],
           requireAll: true,
-          ascending: true,
           rowWord: 'اليوم',
         }
       : {};
