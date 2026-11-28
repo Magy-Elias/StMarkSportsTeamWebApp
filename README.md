@@ -16,11 +16,11 @@ Every page requires logging in, except Form 1 and the login screen.
 
 - `/login`: sign in with email and password
 - `/`: home page with links to each section
-- `/calendar`: monthly calendar of events that have a games plan (saved through Form 2)
-- `/pending`: events waiting for approval; approve them, then open Form 2
+- `/calendar`: monthly calendar of events that have a games plan (saved through Event Management)
+- `/pending`: events waiting for approval; approve them, then open Event Management
 - `/events/[id]`: event details plus the games plan
 - `/form-1`: submit a new event (service/meeting, responsible person, date, place, ...). **Public**: no login needed. New events start as pending.
-- `/form-2`: add or edit the games plan (leaders, list of games, details of the day) for an existing event
+- `/event-management`: add or edit the games plan (leaders, list of games, details of the day) for an existing event
 
 All data lives in a single Supabase table, `events`. See [`supabase/migrations/`](supabase/migrations/).
 

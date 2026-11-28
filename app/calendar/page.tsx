@@ -32,7 +32,7 @@ export default async function CalendarPage({
   // since those rows may fall in this month.
   const { data: events, error } = await supabase
     .from('events')
-    .select('id, title, event_date, status, schedule, leader, games')
+    .select('id, title, event_date, status, schedule, day_plans, leader, co_leader, games')
     // Approved events only ("completed" in older rows also means approved).
     // Chip style: outlined = no games plan yet, solid = games plan added,
     // faded = completed (its last date has passed).

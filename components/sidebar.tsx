@@ -19,7 +19,7 @@ export default function Sidebar({ email }: { email: string | null }) {
     { href: '/pending', label: 'Events Pending', Icon: ClockIcon },
     { href: '/events', label: 'Events', Icon: ListIcon },
     { href: '/event-registration', label: 'Event Registration', Icon: FormIcon },
-    { href: '/form-2', label: 'Form 2', Icon: GamesIcon },
+    { href: '/event-management', label: 'Event Management', Icon: GamesIcon },
   ];
 
   // While the mobile menu is open: close it with Escape, and stop the page

@@ -30,6 +30,9 @@ export type Event = {
   games_time?: number | null;
   schedule: ScheduleSlot[];
   status: EventStatus;
+  /** Games plan per day (same order as `schedule`); see lib/dayPlans.ts. */
+  day_plans?: unknown;
+  /** Older events only: one plan for the whole event. */
   leader?: string | null;
   co_leader?: string | null;
   games: EventGame[];

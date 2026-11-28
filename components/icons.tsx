@@ -40,4 +40,6 @@ export const EyeOffIcon = make(<><path d="M3 3l18 18" /><path d="M10.6 5.1A10.4 
 export const EditIcon = make(<><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" /><path d="m13.5 6.5 4 4" /></>);
 export const ChevronLeftIcon = make(<path d="m15 18-6-6 6-6" />);
 export const ChevronRightIcon = make(<path d="m9 18 6-6-6-6" />);
+export const UsersIcon = make(<><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2A6.5 6.5 0 0 1 21.5 20" /></>);
+export const SparklesIcon = make(<><path d="M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6z" /><path d="M18 3v4M16 5h4M17 15v4M15 17h4" /></>);
 export const ArrowIcon = make(<path d="M5 12h14M13 6l6 6-6 6" />);

@@ -56,7 +56,7 @@ const addDays = (days: number) => {
 
 // Database error -> message for the form. 23505 = the unique "name + date" rule
 // (supabase/migrations/20261117000001_unique_event_title_date.sql).
-const saveErrorMessage = (error: { code?: string; message: string }) =>
+export const saveErrorMessage = (error: { code?: string; message: string }) =>
   error.code === '23505'
     ? 'يوجد حدث بنفس الاسم في نفس التاريخ بالفعل. من فضلك غيّر اسم الخدمة او الاجتماع أو التاريخ.'
     : `Could not save: ${error.message}`;

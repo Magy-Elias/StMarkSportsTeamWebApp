@@ -38,8 +38,11 @@ export const FORM1_FIELDS = [
   { name: 'remarks', label: 'ملاحظات', labelEn: 'Remarks', type: 'textarea' as const },
 ] satisfies Field[];
 
-// Contact details shown at the bottom of Form 1 and on the "submitted" page.
-export const FORM1_CONTACT = `For more details:
-Contact with 
-Mina Sadek: +971 58 162 4410
-Peter Naguib: +971 55 607 2801`;
+// People to contact with questions: shown at the bottom of Event Registration
+// and on the "submitted" page.
+export const FORM1_CONTACTS = [
+  { name: 'Mina Sadek', phone: '+971 58 162 4410' },
+  { name: 'Peter Naguib', phone: '+971 55 607 2801' },
+];
+
+export const FORM1_CONTACT = ['For more details:', 'Contact with ', ...FORM1_CONTACTS.map((c) => `${c.name}: ${c.phone}`)].join('\n');

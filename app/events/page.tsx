@@ -28,7 +28,9 @@ type Row = {
   phone?: string | null;
   email?: string | null;
   schedule?: unknown;
+  day_plans?: unknown;
   leader?: string | null;
+  co_leader?: string | null;
   games?: unknown;
   decline_reason?: string | null;
   declined_at?: string | null;
@@ -45,7 +47,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, title, event_date, status, location, responsible_person, phone, email, schedule, leader, games, decline_reason, declined_at',
+      'id, title, event_date, status, location, responsible_person, phone, email, schedule, day_plans, leader, co_leader, games, decline_reason, declined_at',
     )
     // "completed" in older rows also means approved.
     .in('status', ['approved', 'completed', 'declined'])
@@ -159,7 +161,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                   <EyeIcon size={17} /> View details
                 </Link>
                 {!isDeclined && (
-                  <Link href={`/form-2?event=${ev.id}`} className="btn btn-primary">
+                  <Link href={`/event-management?event=${ev.id}`} className="btn btn-primary">
                     <GamesIcon size={17} /> {planned ? 'Edit games plan' : 'Add games plan'}
                   </Link>
                 )}
