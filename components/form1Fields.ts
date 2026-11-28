@@ -26,11 +26,10 @@ export const FORM1_FIELDS = [
     maxDays: 5,
     sectionLabel: 'الوقت المحدد للالعاب',
     sectionLabelEn: 'Games Time',
-    // 14-day rule, turned OFF for now (we'll need it later). To turn it back on,
-    // uncomment these two lines: every day must then be at least two weeks from
-    // today (earlier dates are greyed out) and the note shows under the dropdown.
-    // minDaysAhead: 14,
-    // hint: 'لا يمكن أن يكون موعد الحدث قبل مرور أسبوعين من اليوم.',
+    // 14-day rule: every day must be at least two weeks from today
+    // (earlier dates are greyed out) and the note shows under the dropdown.
+    minDaysAhead: 14,
+    hint: 'لا يمكن أن يكون موعد الحدث قبل مرور أسبوعين من اليوم.',
     // There's no separate date field: the event's date (calendar, sorting,
     // duplicate check) is Day 1's date.
     dateField: 'event_date',
