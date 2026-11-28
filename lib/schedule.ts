@@ -2,7 +2,7 @@
 // `schedule` column as [{ "date": "2026-11-20", "from": "16:30", "to": "18:00" }].
 // Times are stored as 24-hour "HH:MM" and shown as 12-hour with AM/PM.
 
-export type ScheduleSlot = { date: string; from: string; to: string };
+export type ScheduleSlot = { date: string; from: string; to: string; title?: string };
 
 const isSlot = (v: unknown): v is ScheduleSlot =>
   typeof v === 'object' && v !== null && 'date' in v && 'from' in v && 'to' in v;
@@ -18,7 +18,7 @@ export function parseSchedule(value: unknown): ScheduleSlot[] {
     }
   }
   return Array.isArray(raw)
-    ? raw.filter(isSlot).map((s) => ({ date: String(s.date), from: String(s.from), to: String(s.to) }))
+    ? raw.filter(isSlot).map((s) => ({ date: String(s.date), from: String(s.from), to: String(s.to), title: String(s.title || '') }))
     : [];
 }
 
@@ -38,10 +38,10 @@ export const formatRange = (s: ScheduleSlot) => `${formatTime(s.from)} – ${for
 // they can be picked in any order (e.g. minute before hour).
 
 export type TimeParts = { hour: string; minute: string; period: 'AM' | 'PM' };
-export type FormSlot = { date: string; from: TimeParts; to: TimeParts };
+export type FormSlot = { date: string; from: TimeParts; to: TimeParts; title?: string };
 
 const emptyParts = (): TimeParts => ({ hour: '', minute: '', period: 'AM' });
-export const emptyFormSlot = (): FormSlot => ({ date: '', from: emptyParts(), to: emptyParts() });
+export const emptyFormSlot = (): FormSlot => ({ date: '', from: emptyParts(), to: emptyParts(), title: '' });
 
 /** "16:30" -> { hour: "4", minute: "30", period: "PM" } */
 export function toParts(hhmm: string): TimeParts {
@@ -61,7 +61,7 @@ const partsEmpty = (p: TimeParts) => !p.hour && !p.minute;
 
 /** Saved schedule -> form rows (always at least one row). */
 export function toFormSlots(value: unknown): FormSlot[] {
-  const slots = parseSchedule(value).map((s) => ({ date: s.date, from: toParts(s.from), to: toParts(s.to) }));
+  const slots = parseSchedule(value).map((s) => ({ date: s.date, from: toParts(s.from), to: toParts(s.to), title: s.title }));
   return slots.length ? slots : [emptyFormSlot()];
 }
 

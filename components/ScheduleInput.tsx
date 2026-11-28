@@ -247,6 +247,16 @@ export default function ScheduleInput({
               invalid={issues[i]?.kind === 'error' && issues[i]?.part === 'date'}
             />
           </div>
+          {/* Line 1b: day title (optional) */}
+          <div className="schedule-title-row">
+            <input
+              type="text"
+              placeholder={slots.length > 1 || fixedCount ? `عنوان اليوم ${i + 1}` : 'عنوان اليوم (اختياري)'}
+              value={slot.title || ''}
+              onChange={(e) => update(i, { title: e.target.value })}
+              className="schedule-title-input"
+            />
+          </div>
           {/* Line 2: time wheels (from → to) */}
           <div className="schedule-time-row">
             <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />

@@ -462,6 +462,18 @@ main.no-sidebar { margin-left: 0; }
 
 .schedule-time-row { display: flex; flex-wrap: wrap; gap: 12px; }
 
+.schedule-title-row { margin-top: 4px; }
+.schedule-title-input {
+  width: 100%;
+  max-width: 320px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+}
+.schedule-title-input::placeholder { color: var(--muted); }
+
 .time-picker { display: flex; flex-direction: column; gap: 6px; }
 .time-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
 
