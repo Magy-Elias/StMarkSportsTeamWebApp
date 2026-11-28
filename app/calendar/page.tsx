@@ -123,6 +123,38 @@ export default async function CalendarPage({
           );
         })}
       </div>
+
+      {/* Phones: the grid is too narrow for titles, so list the month's events too. */}
+      <section className="cal-agenda" aria-label="Events this month">
+        <h2>Events this month</h2>
+        {Object.keys(byDay).length === 0 ? (
+          <p className="muted">No events this month.</p>
+        ) : (
+          <ul>
+            {Object.keys(byDay)
+              .sort()
+              .map((key) => (
+                <li key={key}>
+                  <span className={`cal-agenda-date${key === todayKey ? ' today' : ''}`}>
+                    {new Date(`${key}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                  </span>
+                  <div className="cal-agenda-events">
+                    {byDay[key].map((e) => (
+                      <Link
+                        key={e.id}
+                        href={`/events/${e.id}`}
+                        className={`chip${e.planned ? '' : ' approved'}${e.completed ? ' is-past' : ''}`}
+                      >
+                        {e.from && <b>{formatTime(e.from)} </b>}
+                        <span dir="auto">{e.title}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </li>
+              ))}
+          </ul>
+        )}
+      </section>
     </section>
   );
 }

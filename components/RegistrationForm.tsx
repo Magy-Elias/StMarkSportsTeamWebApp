@@ -199,7 +199,7 @@ export default function RegistrationForm() {
     <div className="reg" dir="ltr">
       <div className="logos-row reg-logos">
         <img src="/logo.svg" alt="ONE99 Sports Team" className="form-logo" />
-        <img src="/st-mark-logo.png" alt="St. Mark" className="form-logo" />
+        <img src="/st-mark-logo-round.png" alt="St. Mark" className="form-logo" />
       </div>
 
       <header className="reg-hero">

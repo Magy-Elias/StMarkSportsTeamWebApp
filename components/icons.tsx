@@ -43,3 +43,5 @@ export const ChevronRightIcon = make(<path d="m9 18 6-6-6-6" />);
 export const UsersIcon = make(<><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2A6.5 6.5 0 0 1 21.5 20" /></>);
 export const SparklesIcon = make(<><path d="M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6z" /><path d="M18 3v4M16 5h4M17 15v4M15 17h4" /></>);
 export const ArrowIcon = make(<path d="M5 12h14M13 6l6 6-6 6" />);
+export const DumbbellIcon = make(<><path d="m6.5 6.5 11 11" /><path d="m21 21-1-1M3 3l1 1" /><path d="m18 22 4-4M2 6l4-4M3 10l7-7M14 21l7-7" /></>);
+export const BoxIcon = make(<><path d="M21 8 12 3 3 8v8l9 5 9-5z" /><path d="m3 8 9 5 9-5M12 13v8" /></>);
