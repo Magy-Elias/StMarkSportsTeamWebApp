@@ -212,12 +212,15 @@ function EventManagementContent() {
                           {g.leader && (
                             <p className="game-card-leader"><UserIcon size={18} /> {g.leader}</p>
                           )}
-                          {g.description && (
-                            <div>
-                              <p className="game-card-label">Description</p>
+                          {/* Always shown, so every card has the same layout; "—" when empty. */}
+                          <div>
+                            <p className="game-card-label">Description</p>
+                            {g.description.trim() ? (
                               <p className="game-card-text" dir="auto">{g.description}</p>
-                            </div>
-                          )}
+                            ) : (
+                              <p className="game-card-text game-card-empty">—</p>
+                            )}
+                          </div>
                           {g.tools && (
                             <div className="game-card-tools">
                               <p className="game-card-label"><BoxIcon size={16} /> Tools / Materials</p>

@@ -67,11 +67,13 @@ export function toFormSlots(value: unknown): FormSlot[] {
 
 /**
  * Whether an end time doesn't come after its start ("HH:MM", 24-hour).
- * An evening start (PM) with a morning end (AM) runs past midnight into the next
- * day, e.g. 11:00 PM → 12:00 AM or 10:00 PM → 1:00 AM, so that's allowed.
+ * An evening start (6:00 PM or later) with an early-morning end (6:00 AM or
+ * earlier) runs past midnight into the next day, e.g. 11:00 PM → 12:00 AM or
+ * 10:00 PM → 1:00 AM, so that's allowed. Anything else ending before it starts
+ * (e.g. 12:00 PM → 11:00 AM) is a mistake.
  */
 export const endsTooEarly = (from: string, to: string) => {
-  const overnight = from >= '12:00' && to < '12:00';
+  const overnight = from >= '18:00' && to <= '06:00';
   return to <= from && !overnight;
 };
 

@@ -985,6 +985,7 @@ main.no-sidebar { margin-left: 0; }
 .game-card-leader { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--primary); font-weight: 500; }
 .game-card-text { margin: 4px 0 0; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 .game-card-tools { padding-top: 12px; border-top: 1px solid var(--border); }
+.game-card-empty { color: var(--muted); }
 /* Wider card for pages with a grid of content (Event Management) */
 .card.card-wide { max-width: 1100px; }
 
