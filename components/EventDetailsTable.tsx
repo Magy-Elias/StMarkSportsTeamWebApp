@@ -24,6 +24,13 @@ const arDate = (iso: string) =>
 
 const filled = (v: unknown) => v !== null && v !== undefined && String(v).trim() !== '';
 
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'بانتظار الموافقة',
+  approved: 'تمت الموافقة',
+  completed: 'مكتمل',
+  declined: 'مرفوض',
+};
+
 /**
  * Read-only table of an event's details (as entered in Event Registration),
  * in Arabic, right-to-left. Empty fields are left out.
@@ -46,12 +53,14 @@ export default function EventDetailsTable({ event }: { event: EventDetails }) {
   if (days.length) {
     days.forEach((d, i) => {
       const title = d.title ? `${d.title} — ` : '';
+      const statusChip = d.status ? ` <span className="sub-event-status sub-event-status-${d.status}">(${STATUS_LABEL[d.status] ?? d.status})</span>` : '';
       rows.push({
         label: days.length > 1 ? `اليوم ${i + 1}` : 'التاريخ والوقت',
         value: (
           <>
             {title}{arDate(d.date)}
             <span className="event-table-time" dir="ltr">{formatRange(d)}</span>
+            {statusChip}
           </>
         ),
       });

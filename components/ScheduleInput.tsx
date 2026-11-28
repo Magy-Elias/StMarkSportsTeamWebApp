@@ -262,6 +262,20 @@ export default function ScheduleInput({
             <ClockTimePicker label="من" value={slot.from} onChange={(from) => update(i, { from })} />
             <ClockTimePicker label="إلى" value={slot.to} onChange={(to) => update(i, { to })} />
           </div>
+          {/* Line 2b: sub-event status (optional) */}
+          <div className="schedule-status-row">
+            <label className="schedule-status-label">حالة اليوم:</label>
+            <select
+              value={slot.status || 'pending'}
+              onChange={(e) => update(i, { status: e.target.value })}
+              className="schedule-status-select"
+            >
+              <option value="pending">بانتظار الموافقة</option>
+              <option value="approved">تمت الموافقة</option>
+              <option value="declined">مرفوض</option>
+              <option value="completed">مكتمل</option>
+            </select>
+          </div>
           {issues[i] && (
             <p
               className={`row-issue ${issues[i]?.kind === 'error' ? 'is-error' : 'is-todo'}`}

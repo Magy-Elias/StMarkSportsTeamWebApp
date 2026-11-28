@@ -92,7 +92,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <ul className="schedule-list">
                 {schedule.map((s, i) => (
                   <li key={i}>
-                    {s.title ? `${s.title} — ` : ''}{formatDate(s.date)}: <span dir="ltr">{formatRange(s)}</span>
+                    {s.title ? `${s.title} — ` : ''}{formatDate(s.date)}: <span dir="ltr">{formatRange(s)}</span>{s.status ? ` <span className="sub-event-status">(${STATUS_LABEL[s.status] ?? s.status})</span>` : ''}
                   </li>
                 ))}
               </ul>

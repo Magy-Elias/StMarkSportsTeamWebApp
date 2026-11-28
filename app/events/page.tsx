@@ -37,6 +37,13 @@ type Row = {
 const formatDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'بانتظار الموافقة',
+  approved: 'تمت الموافقة',
+  completed: 'مكتمل',
+  declined: 'مرفوض',
+};
+
 export default async function EventsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab } = await searchParams;
   const active = tab === 'declined' ? 'declined' : 'approved';
@@ -131,7 +138,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                 {days.length ? (
                   days.map((d, i) => (
                     <li key={i}>
-                      <ClockIcon size={16} /> {d.title ? `${d.title} · ` : ''}{formatDate(d.date)} · <span dir="ltr">{formatRange(d)}</span>
+                      <ClockIcon size={16} /> {d.title ? `${d.title} · ` : ''}{formatDate(d.date)} · <span dir="ltr">{formatRange(d)}</span>{d.status ? ` <span className="sub-event-status sub-event-status-${d.status}">${STATUS_LABEL[d.status] ?? d.status}</span>` : ''}
                     </li>
                   ))
                 ) : (
