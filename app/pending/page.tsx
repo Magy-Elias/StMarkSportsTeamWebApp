@@ -122,7 +122,7 @@ export default function Pending() {
               <ul className="meta-list">
                 <li><CalendarIcon size={16} /> {formatDate(ev.event_date)}</li>
                 {slots.map((s, i) => (
-                  <li key={i}><ClockIcon size={16} /> {formatDate(s.date)} · <span dir="ltr">{formatRange(s)}</span></li>
+                  <li key={i}><ClockIcon size={16} /> {s.title ? `${s.title} · ` : ''}{formatDate(s.date)} · <span dir="ltr">{formatRange(s)}</span></li>
                 ))}
                 {ev.location && <li><PinIcon size={16} /> <span dir="auto">{ev.location}</span></li>}
                 {ev.responsible_person && <li><UserIcon size={16} /> <span dir="auto">{ev.responsible_person}</span></li>}

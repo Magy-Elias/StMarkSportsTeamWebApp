@@ -131,7 +131,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                 {days.length ? (
                   days.map((d, i) => (
                     <li key={i}>
-                      <ClockIcon size={16} /> {formatDate(d.date)} · <span dir="ltr">{formatRange(d)}</span>
+                      <ClockIcon size={16} /> {d.title ? `${d.title} · ` : ''}{formatDate(d.date)} · <span dir="ltr">{formatRange(d)}</span>
                     </li>
                   ))
                 ) : (
