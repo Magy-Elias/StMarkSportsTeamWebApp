@@ -108,7 +108,7 @@ export function fromFormSlots(rows: FormSlot[], rules: ScheduleRules = {}): { sc
       return { schedule, error: `${rules.minDateMessage ?? 'تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث.'}${n}` };
     }
     if (endsTooEarly(from, to)) return { schedule, error: `وقت النهاية يجب أن يكون بعد وقت البداية${n}.` };
-    schedule.push({ date: row.date, from, to });
+    schedule.push({ date: row.date, from, to, title: row.title });
   }
   return { schedule, error: null };
 }
