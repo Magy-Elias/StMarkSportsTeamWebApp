@@ -1,4 +1,5 @@
 import { parseSchedule } from '@/lib/schedule';
+import { dayPlanFilled, parseDayPlans } from '@/lib/dayPlans';
 
 // Event statuses stored in the database: pending → approved (or declined).
 // "Completed" is NOT stored: it's worked out automatically — an approved event
@@ -26,6 +27,5 @@ export function displayStatus(e: DatedEvent, today = teamToday()): string {
   return lastEventDate(e) < today ? 'completed' : 'approved';
 }
 
-/** Whether Form 2 (games plan) has been filled in for this event. */
-export const hasGamesPlan = (e: { leader?: string | null; games?: unknown }) =>
-  Boolean(e.leader) || (Array.isArray(e.games) && e.games.length > 0);
+/** Whether Event Management (games plan) has been filled in for this event. */
+export const hasGamesPlan = (e: Parameters<typeof parseDayPlans>[0]) => parseDayPlans(e).some(dayPlanFilled);

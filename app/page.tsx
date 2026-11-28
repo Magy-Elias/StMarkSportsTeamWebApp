@@ -5,7 +5,7 @@ const SECTIONS = [
   { href: '/calendar', title: 'Calendar', text: 'See approved events by month.', Icon: CalendarIcon },
   { href: '/pending', title: 'Events Pending', text: 'Review and approve new events.', Icon: ClockIcon },
   { href: '/event-registration', title: 'Event Registration', text: 'Create a new event.', Icon: FormIcon },
-  { href: '/form-2', title: 'Form 2', text: 'Add the games plan for an event.', Icon: GamesIcon },
+  { href: '/event-management', title: 'One 99 Event Management', text: 'Add the games plan for an event.', Icon: GamesIcon },
 ];
 
 export default function Home() {

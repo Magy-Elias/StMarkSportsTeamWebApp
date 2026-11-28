@@ -23,7 +23,7 @@ const formatDate = (iso: string) =>
 
 export default function Pending() {
   const [events, setEvents] = useState<PendingEvent[]>([]);
-  // Approved on this visit: the card stays, marked approved, with Form 2 enabled.
+  // Approved on this visit: the card stays, marked approved, with Event Management enabled.
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
   const [approvingId, setApprovingId] = useState<string | null>(null);
   // Declined on this visit: the card stays, marked declined, showing the message.
@@ -84,7 +84,7 @@ export default function Pending() {
       <header className="page-header">
         <div>
           <h1>Events Pending</h1>
-          <p className="muted">Review new events. Approve them, then add the games plan with Form 2.</p>
+          <p className="muted">Review new events. Approve them, then add the games plan with One 99 Event Management.</p>
         </div>
         {!loading && !loadError && (
           <span className="count-badge">{waiting} waiting</span>
@@ -122,7 +122,7 @@ export default function Pending() {
               <ul className="meta-list">
                 <li><CalendarIcon size={16} /> {formatDate(ev.event_date)}</li>
                 {slots.map((s, i) => (
-                  <li key={i}><ClockIcon size={16} /> {formatDate(s.date)} · <span dir="ltr">{formatRange(s)}</span></li>
+                  <li key={i}><ClockIcon size={16} /> {s.title ? `${s.title} · ` : ''}{formatDate(s.date)} · <span dir="ltr">{formatRange(s)}</span></li>
                 ))}
                 {ev.location && <li><PinIcon size={16} /> <span dir="auto">{ev.location}</span></li>}
                 {ev.responsible_person && <li><UserIcon size={16} /> <span dir="auto">{ev.responsible_person}</span></li>}
@@ -159,8 +159,8 @@ export default function Pending() {
                   <EyeIcon size={17} /> View details
                 </Link>
                 {declineMessage ? null : approved ? (
-                  <Link href={`/form-2?event=${ev.id}`} className="btn btn-primary">
-                    <GamesIcon size={17} /> Open Form 2
+                  <Link href={`/event-management?event=${ev.id}`} className="btn btn-primary">
+                    <GamesIcon size={17} /> Open One 99 Event Management
                   </Link>
                 ) : (
                   <button

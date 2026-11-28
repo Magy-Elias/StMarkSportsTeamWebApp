@@ -44,17 +44,18 @@ export default function EventDetailsTable({ event }: { event: EventDetails }) {
   add('رقم التليفون', event.phone && <a href={`tel:${event.phone}`} dir="ltr">{event.phone}</a>, event.phone);
   add('البريد الإلكتروني', event.email && <a href={`mailto:${event.email}`} dir="ltr">{event.email}</a>, event.email);
   if (days.length) {
-    days.forEach((d, i) =>
+    days.forEach((d, i) => {
+      const title = d.title ? `${d.title} — ` : '';
       rows.push({
         label: days.length > 1 ? `اليوم ${i + 1}` : 'التاريخ والوقت',
         value: (
           <>
-            {arDate(d.date)}
+            {title}{arDate(d.date)}
             <span className="event-table-time" dir="ltr">{formatRange(d)}</span>
           </>
         ),
-      }),
-    );
+      });
+    });
   } else {
     add('التاريخ', arDate(event.event_date), event.event_date);
   }

@@ -2,7 +2,7 @@
 // `schedule` column as [{ "date": "2026-11-20", "from": "16:30", "to": "18:00" }].
 // Times are stored as 24-hour "HH:MM" and shown as 12-hour with AM/PM.
 
-export type ScheduleSlot = { date: string; from: string; to: string };
+export type ScheduleSlot = { date: string; from: string; to: string; title?: string };
 
 const isSlot = (v: unknown): v is ScheduleSlot =>
   typeof v === 'object' && v !== null && 'date' in v && 'from' in v && 'to' in v;
@@ -18,7 +18,7 @@ export function parseSchedule(value: unknown): ScheduleSlot[] {
     }
   }
   return Array.isArray(raw)
-    ? raw.filter(isSlot).map((s) => ({ date: String(s.date), from: String(s.from), to: String(s.to) }))
+    ? raw.filter(isSlot).map((s) => ({ date: String(s.date), from: String(s.from), to: String(s.to), title: String(s.title || '') }))
     : [];
 }
 
@@ -38,10 +38,10 @@ export const formatRange = (s: ScheduleSlot) => `${formatTime(s.from)} – ${for
 // they can be picked in any order (e.g. minute before hour).
 
 export type TimeParts = { hour: string; minute: string; period: 'AM' | 'PM' };
-export type FormSlot = { date: string; from: TimeParts; to: TimeParts };
+export type FormSlot = { date: string; from: TimeParts; to: TimeParts; title?: string };
 
 const emptyParts = (): TimeParts => ({ hour: '', minute: '', period: 'AM' });
-export const emptyFormSlot = (): FormSlot => ({ date: '', from: emptyParts(), to: emptyParts() });
+export const emptyFormSlot = (): FormSlot => ({ date: '', from: emptyParts(), to: emptyParts(), title: '' });
 
 /** "16:30" -> { hour: "4", minute: "30", period: "PM" } */
 export function toParts(hhmm: string): TimeParts {
@@ -61,7 +61,7 @@ const partsEmpty = (p: TimeParts) => !p.hour && !p.minute;
 
 /** Saved schedule -> form rows (always at least one row). */
 export function toFormSlots(value: unknown): FormSlot[] {
-  const slots = parseSchedule(value).map((s) => ({ date: s.date, from: toParts(s.from), to: toParts(s.to) }));
+  const slots = parseSchedule(value).map((s) => ({ date: s.date, from: toParts(s.from), to: toParts(s.to), title: s.title }));
   return slots.length ? slots : [emptyFormSlot()];
 }
 
@@ -85,17 +85,8 @@ export type ScheduleRules = {
   allowedDates?: string[];
   /** Every row must be filled in (no skipping empty rows). */
   requireAll?: boolean;
-  /** Each row's date must be after the previous row's date. */
-  ascending?: boolean;
   /** Word used to name a row in messages, e.g. "اليوم" → "(اليوم 2)". Default "الموعد". */
   rowWord?: string;
-};
-
-/** "2026-12-04" -> "2026-12-05" */
-export const nextDay = (iso: string) => {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
 };
 
 /**
@@ -116,12 +107,8 @@ export function fromFormSlots(rows: FormSlot[], rules: ScheduleRules = {}): { sc
     if (rules.minDate && row.date < rules.minDate && !allowed) {
       return { schedule, error: `${rules.minDateMessage ?? 'تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث.'}${n}` };
     }
-    const prev = schedule.at(-1);
-    if (rules.ascending && prev && row.date <= prev.date) {
-      return { schedule, error: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
-    }
     if (endsTooEarly(from, to)) return { schedule, error: `وقت النهاية يجب أن يكون بعد وقت البداية${n}.` };
-    schedule.push({ date: row.date, from, to });
+    schedule.push({ date: row.date, from, to, title: row.title });
   }
   return { schedule, error: null };
 }
@@ -137,24 +124,18 @@ export type RowIssue = {
 
 /**
  * Same rules as fromFormSlots, but checked for every row separately, so each
- * day can show its own message (e.g. "Day 2 must be after Day 1").
+ * day can show its own message.
  */
 export function rowIssues(rows: FormSlot[], rules: ScheduleRules = {}): (RowIssue | null)[] {
   const word = rules.rowWord ?? 'الموعد';
-  let prevDate: string | undefined;
   return rows.map((row, i) => {
     const empty = !row.date && partsEmpty(row.from) && partsEmpty(row.to);
     if (empty && !rules.requireAll) return null;
     const from = fromParts(row.from);
     const to = fromParts(row.to);
-    const previous = prevDate;
-    if (row.date) prevDate = row.date;
     if (!row.date) return { kind: 'todo', part: 'date', message: `من فضلك اختر تاريخ ${word} ${i + 1}.` };
     if (rules.minDate && row.date < rules.minDate && !rules.allowedDates?.includes(row.date)) {
       return { kind: 'error', part: 'date', message: rules.minDateMessage ?? 'تاريخ الموعد لا يمكن أن يكون قبل تاريخ الحدث.' };
-    }
-    if (rules.ascending && previous && row.date <= previous) {
-      return { kind: 'error', part: 'date', message: `يجب أن يكون تاريخ ${word} ${i + 1} بعد تاريخ ${word} ${i}.` };
     }
     if (!from || !to) return { kind: 'todo', part: 'time', message: 'من فضلك اختر وقت البداية والنهاية.' };
     if (endsTooEarly(from, to)) {

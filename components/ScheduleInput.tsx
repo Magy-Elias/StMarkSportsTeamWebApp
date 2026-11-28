@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import DatePicker from '@/components/DatePicker';
-import { emptyFormSlot, fromFormSlots, nextDay, rowIssues, type FormSlot, type ScheduleRules, type TimeParts } from '@/lib/schedule';
+import { emptyFormSlot, fromFormSlots, rowIssues, type FormSlot, type ScheduleRules, type TimeParts } from '@/lib/schedule';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -212,22 +212,16 @@ export default function ScheduleInput({
     save(next);
   };
 
-  // Each day's own problem, shown under that day (e.g. "Day 2 must be after Day 1").
+  // Each day's own problem, shown under that day.
   const issues = rowIssues(slots, rules);
   // Fallback: anything the per-row check doesn't cover is shown under all rows.
   const { error: scheduleError } = fromFormSlots(slots, rules);
   const shownUnderRows = issues.some(Boolean);
   const word = rules.rowWord ?? 'الموعد';
-  // Earliest date the calendar lets you pick for row i: the rule's minimum, and
-  // (when days must be in order) the day after the previous row's date. An
-  // event's existing date stays pickable when editing.
+  // Earliest date the calendar lets you pick for row i: the rule's minimum.
+  // An event's existing date stays pickable when editing.
   const rowMin = (i: number) => {
-    let min = rules.minDate;
-    const prev = slots[i - 1]?.date;
-    if (rules.ascending && prev) {
-      const afterPrev = nextDay(prev);
-      if (!min || afterPrev > min) min = afterPrev;
-    }
+    const min = rules.minDate;
     const current = slots[i]?.date;
     if (min && current && current < min && rules.allowedDates?.includes(current)) return current;
     return min;
@@ -251,6 +245,16 @@ export default function ScheduleInput({
               min={rowMin(i) || undefined}
               onChange={(date) => update(i, { date })}
               invalid={issues[i]?.kind === 'error' && issues[i]?.part === 'date'}
+            />
+          </div>
+          {/* Line 1b: day title (optional) */}
+          <div className="schedule-title-row">
+            <input
+              type="text"
+              placeholder={slots.length > 1 || fixedCount ? `عنوان اليوم ${i + 1}` : 'عنوان اليوم (اختياري)'}
+              value={slot.title || ''}
+              onChange={(e) => update(i, { title: e.target.value })}
+              className="schedule-title-input"
             />
           </div>
           {/* Line 2: time wheels (from → to) */}

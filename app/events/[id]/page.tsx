@@ -4,6 +4,7 @@ import { formatRange, parseSchedule } from '@/lib/schedule';
 import { EditIcon } from '@/components/icons';
 import DeleteEventButton from '@/components/DeleteEventButton';
 import { displayStatus } from '@/lib/status';
+import { dayPlanFilled, parseDayPlans } from '@/lib/dayPlans';
 import type { Event } from '@/lib/types';
 
 // Fields shown on the detail page, in order. Add or remove entries here.
@@ -44,6 +45,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const schedule = parseSchedule(event.schedule);
   // "completed" is automatic: approved and its last date has passed.
   const status = displayStatus(event);
+  // Games plan per day; days with nothing filled in are left out.
+  const plans = parseDayPlans(event)
+    .map((plan, i) => ({ plan, i, day: schedule[i] }))
+    .filter(({ plan }) => dayPlanFilled(plan));
+  const multiDay = schedule.length > 1 || plans.some(({ i }) => i > 0);
 
   return (
     <article className="card" dir="rtl">
@@ -92,7 +98,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <ul className="schedule-list">
                 {schedule.map((s, i) => (
                   <li key={i}>
-                    {formatDate(s.date)}: <span dir="ltr">{formatRange(s)}</span>
+                    {s.title ? `${s.title} — ` : ''}{formatDate(s.date)}: <span dir="ltr">{formatRange(s)}</span>
                   </li>
                 ))}
               </ul>
@@ -103,20 +109,34 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       <section dir="ltr" className="plan">
         <h2>Games plan</h2>
-        {event.leader || event.co_leader || event.games?.length || event.day_details ? (
+        {plans.length || event.day_details ? (
           <>
-            <dl className="details">
-              {event.leader && <div><dt>Leader</dt><dd>{event.leader}</dd></div>}
-              {event.co_leader && <div><dt>Co-Leader</dt><dd>{event.co_leader}</dd></div>}
-            </dl>
-            {event.games?.map((g, i) => (
-              <div key={i} className="game">
-                <h3>{g.name || `Game ${i + 1}`}</h3>
+            {plans.map(({ plan, i, day }) => (
+              <div key={i} className="day-plan-view">
+                {multiDay && (
+                  <h3>
+                    Day {i + 1}
+                    {day && (
+                      <small className="muted">
+                        {day.title ? ` · ${day.title}` : ''} · <span dir="rtl">{formatDate(day.date)}</span> · {formatRange(day)}
+                      </small>
+                    )}
+                  </h3>
+                )}
                 <dl className="details">
-                  {g.leader && <div><dt>Game Leader</dt><dd>{g.leader}</dd></div>}
-                  {g.description && <div><dt>Description</dt><dd>{g.description}</dd></div>}
-                  {g.tools && <div><dt>Tools / Material</dt><dd>{g.tools}</dd></div>}
+                  {plan.leader && <div><dt>Leader</dt><dd>{plan.leader}</dd></div>}
+                  {plan.co_leader && <div><dt>Co-Leader</dt><dd>{plan.co_leader}</dd></div>}
                 </dl>
+                {plan.games.map((g, j) => (
+                  <div key={j} className="game">
+                    <h3>{g.name || `Game ${j + 1}`}</h3>
+                    <dl className="details">
+                      {g.leader && <div><dt>Game Leader</dt><dd>{g.leader}</dd></div>}
+                      {g.description && <div><dt>Description</dt><dd>{g.description}</dd></div>}
+                      {g.tools && <div><dt>Tools / Material</dt><dd>{g.tools}</dd></div>}
+                    </dl>
+                  </div>
+                ))}
               </div>
             ))}
             {event.day_details && (
@@ -124,11 +144,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 <div><dt>Details of the Day</dt><dd>{event.day_details}</dd></div>
               </dl>
             )}
-            <p><Link href={`/form-2?event=${event.id}`}>Edit games plan</Link></p>
+            <p><Link href={`/event-management?event=${event.id}`}>Edit games plan</Link></p>
           </>
         ) : (
           <p className="muted">
-            No games plan yet. <Link href={`/form-2?event=${event.id}`}>Add one with Form 2</Link>
+            No games plan yet. <Link href={`/event-management?event=${event.id}`}>Add one with One 99 Event Management</Link>
           </p>
         )}
       </section>

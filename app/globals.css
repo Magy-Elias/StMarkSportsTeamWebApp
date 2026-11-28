@@ -275,6 +275,10 @@ main.no-sidebar { margin-left: 0; }
 .form legend { font-weight: 600; padding: 0 6px; }
 
 .games-list { display: flex; flex-direction: column; gap: 14px; }
+/* Event Management: one games plan per day of the event */
+.day-plan { display: flex; flex-direction: column; gap: 14px; }
+.day-plan + .day-plan { padding-top: 20px; border-top: 1px solid var(--border); }
+.day-plan-title { margin: 0; font-size: 1.1rem; }
 
 /* Form 1: date + from/to rows */
 .schedule { display: flex; flex-direction: column; gap: 10px; }
@@ -308,6 +312,9 @@ main.no-sidebar { margin-left: 0; }
 .plan h2 { margin-bottom: 10px; }
 .game { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-top: 12px; background: #FAFCFF; }
 .game h3 { margin: 0 0 6px; }
+.day-plan-view + .day-plan-view { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border); }
+.day-plan-view > h3 { margin: 0 0 8px; }
+.day-plan-view > h3 small { font-weight: 400; font-size: 0.85rem; }
 .game dl div { grid-template-columns: 140px 1fr; }
 
 /* ==========================================================================
@@ -461,6 +468,18 @@ main.no-sidebar { margin-left: 0; }
 .form .schedule-date-row input[type="date"] { width: 100%; max-width: 260px; padding: 8px 10px; }
 
 .schedule-time-row { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.schedule-title-row { margin-top: 4px; }
+.schedule-title-input {
+  width: 100%;
+  max-width: 320px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+}
+.schedule-title-input::placeholder { color: var(--muted); }
 
 .time-picker { display: flex; flex-direction: column; gap: 6px; }
 .time-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
@@ -741,7 +760,7 @@ main.no-sidebar { margin-left: 0; }
 /* Event details: Edit + Delete side by side */
 .detail-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* Read-only event details table (Form 2) */
+/* Read-only event details table (Event Management) */
 .event-table { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; }
 .event-table h2 { margin: 0; padding: 12px 16px; font-size: 1rem; background: var(--color-blue-tint); color: var(--color-navy); border-bottom: 1px solid var(--border); }
 .event-table table { width: 100%; border-collapse: collapse; }
@@ -777,3 +796,135 @@ main.no-sidebar { margin-left: 0; }
 .tab.is-active .tab-count { background: var(--primary); color: #fff; }
 .badge-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .pending-card.is-completed { border-inline-start-color: var(--success); }
+
+/* ==========================================================================
+   Event Registration (/event-registration): step cards + sticky submit bar
+   ========================================================================== */
+.reg { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.reg-logos { margin: 0 auto; max-width: 1000px; }
+
+.reg-hero {
+  border-radius: 24px; padding: 40px 44px 44px; color: #fff;
+  background: linear-gradient(120deg, var(--color-navy-dark) 0%, var(--color-navy) 50%, #16489A 100%);
+  box-shadow: var(--shadow-lg);
+}
+.reg-hero h1 { font-size: 2.3rem; font-weight: 700; margin: 4px 0 0; color: #fff; }
+.reg-hero-team { margin: 0; font-size: 1.05rem; font-weight: 500; opacity: 0.85; }
+.reg-hero-ar { margin: 4px 0 0; font-size: 1.15rem; opacity: 0.9; text-align: right; }
+.reg-progress-text { display: flex; justify-content: space-between; gap: 12px; margin-top: 30px; font-size: 1rem; }
+.reg-progress-text span:last-child { opacity: 0.85; }
+.reg-progress { margin-top: 14px; height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.2); overflow: hidden; }
+.reg-progress span { display: block; height: 100%; border-radius: inherit; background: #fff; transition: width 0.3s ease; }
+
+.reg-form { display: flex; flex-direction: column; gap: 28px; }
+.reg-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+  padding: 36px 38px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 24px;
+}
+.reg-step-header { display: flex; align-items: center; gap: 16px; }
+.reg-step-icon {
+  width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-blue-tint); color: var(--color-navy);
+}
+.reg-step-titles { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.reg-step-number { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; color: var(--muted); }
+.reg-step-titles h2 { margin: 0; font-size: 1.55rem; font-weight: 700; }
+.reg-step-ar { font-size: 1.1rem; color: var(--muted); }
+
+.reg-field { display: flex; flex-direction: column; gap: 10px; font-weight: 600; min-width: 0; }
+.reg-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 1.05rem; }
+.reg-label-ar { font-weight: 400; color: var(--muted); }
+.reg-req { color: var(--danger); margin-left: 3px; }
+.reg-optional { font-weight: 400; color: var(--muted); }
+.reg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 28px; }
+.reg-half { max-width: calc(50% - 14px); }
+
+.reg-field input, .reg-field textarea {
+  width: 100%; font: inherit; font-weight: 400; font-size: 1.1rem; color: var(--text);
+  padding: 16px 22px; border: 1px solid var(--border-strong); border-radius: 16px; background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.reg-field textarea { resize: vertical; min-height: 120px; }
+.reg-field input::placeholder, .reg-field textarea::placeholder { color: #8C9AB8; }
+.reg-field input:focus, .reg-field textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus); }
+.reg-field input[aria-invalid="true"] { border-color: var(--danger); }
+.reg-input-icon { position: relative; display: block; }
+.reg-input-icon svg { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.reg-input-icon input { padding-left: 52px; }
+
+.reg-days-count {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 22px 24px; border-radius: 16px; background: #EEF3FA;
+}
+.reg-days-count > div:first-child { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.reg-days-count-en { font-size: 1.15rem; font-weight: 600; }
+.reg-days-count-ar { color: var(--muted); align-self: flex-end; }
+.reg-stepper { display: flex; align-items: center; gap: 14px; }
+.reg-stepper button {
+  width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--border); background: #fff;
+  font: inherit; font-size: 1.5rem; line-height: 1; color: var(--text); cursor: pointer; box-shadow: var(--shadow-sm);
+}
+.reg-stepper button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.reg-stepper button:not(:disabled):hover { background: var(--color-blue-tint); }
+.reg-stepper output { min-width: 24px; text-align: center; font-size: 1.5rem; font-weight: 700; }
+.reg-note { display: flex; align-items: center; gap: 10px; margin: -4px 0 0; color: var(--muted); font-size: 1.02rem; }
+.reg-note svg { flex-shrink: 0; }
+
+.reg-day { border: 1px solid var(--border); border-radius: 18px; padding: 26px 28px 30px; margin: 0; display: flex; flex-direction: column; gap: 22px; }
+.reg-day-header { display: flex; align-items: center; justify-content: space-between; }
+.reg-day-pill { background: var(--color-navy); color: #fff; font-weight: 600; font-size: 1.05rem; padding: 6px 16px; border-radius: 999px; }
+.reg-day-error { margin: 0; color: var(--danger); font-weight: 500; font-size: 0.95rem; }
+
+.reg-contact { background: #E3EEFD; border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+.reg-contact h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.3rem; color: var(--color-navy); }
+.reg-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.reg-contact-card {
+  background: #fff; border-radius: 16px; padding: 20px 22px; text-decoration: none;
+  display: flex; flex-direction: column; gap: 4px; color: var(--text);
+}
+.reg-contact-card:hover { color: var(--text); box-shadow: var(--shadow); }
+.reg-contact-name { color: var(--muted); font-size: 1.02rem; }
+.reg-contact-phone { font-size: 1.3rem; font-weight: 500; }
+
+.reg-submit-bar {
+  position: sticky; bottom: 0; z-index: 5;
+  background: var(--card); border: 1px solid var(--border); border-radius: 24px 24px 0 0;
+  padding: 22px 22px 18px; box-shadow: 0 -8px 24px rgba(11, 34, 90, 0.06);
+  display: flex; flex-direction: column; gap: 14px; text-align: center;
+}
+.reg-submit-bar .error { margin: 0; }
+.reg-submit {
+  width: 100%; font: inherit; font-size: 1.25rem; font-weight: 600; color: #fff;
+  padding: 20px; border: none; border-radius: 18px; cursor: pointer;
+  background: var(--color-navy); box-shadow: var(--shadow);
+}
+.reg-submit:hover:not(:disabled) { background: var(--color-navy-dark); }
+.reg-submit:disabled { background: #8B97B6; cursor: not-allowed; }
+.reg-submit-hint { margin: 0; color: var(--muted); font-size: 1.05rem; }
+
+@media (max-width: 768px) {
+  .reg { gap: 18px; }
+  .reg-hero { padding: 26px 22px 28px; border-radius: 20px; }
+  .reg-hero h1 { font-size: 1.7rem; }
+  .reg-progress-text { margin-top: 20px; font-size: 0.92rem; }
+  .reg-form { gap: 18px; }
+  .reg-card { padding: 22px 18px; border-radius: 20px; gap: 20px; }
+  .reg-step-icon { width: 46px; height: 46px; }
+  .reg-step-titles h2 { font-size: 1.3rem; }
+  .reg-step-ar { font-size: 0.95rem; }
+  .reg-label { font-size: 0.98rem; flex-wrap: wrap; }
+  .reg-grid, .reg-contact-grid { grid-template-columns: 1fr; gap: 20px; }
+  .reg-half { max-width: none; }
+  .reg-field input, .reg-field textarea { padding: 14px 16px; font-size: 1rem; }
+  .reg-input-icon input { padding-left: 46px; }
+  .reg-input-icon svg { left: 16px; }
+  .reg-days-count { padding: 16px; flex-wrap: wrap; }
+  .reg-days-count-ar { align-self: flex-start; }
+  .reg-stepper button { width: 46px; height: 46px; }
+  .reg-day { padding: 18px 16px 20px; }
+  .reg-contact { padding: 20px 16px; }
+  .reg-submit-bar { padding: 14px 14px 12px; border-radius: 20px 20px 0 0; }
+  .reg-submit { padding: 16px; font-size: 1.08rem; }
+  .reg-submit-hint { font-size: 0.92rem; }
+}
