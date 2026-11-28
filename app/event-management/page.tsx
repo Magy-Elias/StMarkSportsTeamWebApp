@@ -7,11 +7,14 @@ import { supabase } from '@/lib/supabase/client';
 import EventDetailsTable, { EVENT_DETAILS_COLUMNS, type EventDetails } from '@/components/EventDetailsTable';
 import { DAY_PLAN_COLUMNS, parseDayPlans, type DayPlan } from '@/lib/dayPlans';
 import { formatRange, parseSchedule, type ScheduleSlot } from '@/lib/schedule';
+import { BoxIcon, DumbbellIcon, EditIcon, TrashIcon, UserIcon } from '@/components/icons';
 
-type GameForm = { leader: string; name: string; description: string; tools: string };
+/** `saved` is UI-only: a saved game shows as a card, an unsaved one as its form. */
+type GameForm = { leader: string; name: string; description: string; tools: string; saved: boolean };
 type PlanForm = { leader: string; co_leader: string; games: GameForm[] };
 
-const emptyGame = (): GameForm => ({ leader: '', name: '', description: '', tools: '' });
+const emptyGame = (): GameForm => ({ leader: '', name: '', description: '', tools: '', saved: false });
+const isEmptyGame = (g: GameForm) => [g.leader, g.name, g.description, g.tools].every((v) => v.trim() === '');
 const emptyPlan = (): PlanForm => ({ leader: '', co_leader: '', games: [emptyGame()] });
 const clean = (v: string) => (v.trim() === '' ? null : v.trim());
 
@@ -22,16 +25,17 @@ const toForm = (p?: DayPlan): PlanForm =>
         leader: p.leader ?? '',
         co_leader: p.co_leader ?? '',
         games: p.games.length
-          ? p.games.map((g) => ({ leader: g.leader ?? '', name: g.name ?? '', description: g.description ?? '', tools: g.tools ?? '' }))
+          ? p.games.map((g) => ({ leader: g.leader ?? '', name: g.name ?? '', description: g.description ?? '', tools: g.tools ?? '', saved: true }))
           : [emptyGame()],
       }
     : emptyPlan();
 
-/** Form fields -> plan to save (empty games left out). */
+/** Form fields -> plan to save (only saved games; empty ones left out). */
 const fromForm = (p: PlanForm) => ({
   leader: clean(p.leader),
   co_leader: clean(p.co_leader),
   games: p.games
+    .filter((g) => g.saved)
     .map((g) => ({ leader: clean(g.leader), name: clean(g.name), description: clean(g.description), tools: clean(g.tools) }))
     .filter((g) => Object.values(g).some((v) => v !== null)),
 });
@@ -100,18 +104,46 @@ function EventManagementContent() {
     updatePlan(d, (p) => ({ ...p, games: p.games.map((g, j) => (j === i ? { ...g, [key]: e.target.value } : g)) }));
 
   const addGame = (d: number) => updatePlan(d, (p) => ({ ...p, games: [...p.games, emptyGame()] }));
-  const removeGame = (d: number, i: number) => updatePlan(d, (p) => ({ ...p, games: p.games.filter((_, j) => j !== i) }));
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  /** Writes the plans to the DB (only games marked saved are stored). */
+  const persist = async (next: PlanForm[]) => {
+    setPlans(next);
     setStatus({ state: 'saving' as const, message: null });
     const { error } = await supabase
       .from('events')
       // Only the games plan; the status isn't changed ("completed" is automatic, see lib/status.ts).
       // The old event-wide columns are cleared: the plan now lives in day_plans.
-      .update({ day_plans: plans.map(fromForm), leader: null, co_leader: null, games: [] })
+      .update({ day_plans: next.map(fromForm), leader: null, co_leader: null, games: [] })
       .eq('id', eventId);
     setStatus(error ? { state: 'error', message: error.message } : { state: 'saved' as const, message: null });
+  };
+
+  const withGames = (d: number, change: (games: GameForm[]) => GameForm[]) =>
+    plans.map((p, j) => (j === d ? { ...p, games: change(p.games) } : p));
+
+  /** Save one game: it turns into a card and the plan is stored. */
+  const saveGame = (d: number, i: number) => {
+    const g = plans[d].games[i];
+    if (!g.name.trim() && !g.leader.trim()) {
+      return setStatus({ state: 'error', message: 'Enter at least the game name or the game leader.' });
+    }
+    void persist(withGames(d, (games) => games.map((x, j) => (j === i ? { ...x, saved: true } : x))));
+  };
+
+  const editGame = (d: number, i: number) =>
+    updatePlan(d, (p) => ({ ...p, games: p.games.map((g, j) => (j === i ? { ...g, saved: false } : g)) }));
+
+  const removeGame = (d: number, i: number) => {
+    const g = plans[d].games[i];
+    if (!g.saved) return updatePlan(d, (p) => ({ ...p, games: p.games.filter((_, j) => j !== i) }));
+    if (!confirm(`Delete game "${g.name || `Game ${i + 1}`}"?`)) return;
+    void persist(withGames(d, (games) => games.filter((_, j) => j !== i)));
+  };
+
+  // The main Save button also saves every filled-in game form.
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void persist(plans.map((p) => ({ ...p, games: p.games.map((g) => (isEmptyGame(g) ? g : { ...g, saved: true })) })));
   };
 
   const updateSearchParams = (updates: Record<string, string>) => {
@@ -124,7 +156,7 @@ function EventManagementContent() {
   };
 
   return (
-    <section className="card">
+    <section className="card card-wide">
       <h1>One 99 Event Management</h1>
       <form onSubmit={onSubmit} className="form">
         <label>
@@ -158,32 +190,73 @@ function EventManagementContent() {
                   <input value={plan.co_leader} onChange={set(d, 'co_leader')} />
                 </label>
 
-                <div className="games-list">
-                  {plan.games.map((g, i) => (
-                    <fieldset key={i}>
-                      <legend>Game {i + 1}</legend>
-                      <label>
-                        <span>Game Leader</span>
-                        <input value={g.leader} onChange={setGame(d, i, 'leader')} />
-                      </label>
-                      <label>
-                        <span>Game Name</span>
-                        <input value={g.name} onChange={setGame(d, i, 'name')} />
-                      </label>
-                      <label>
-                        <span>Game Description <small className="optional">(optional)</small></span>
-                        <textarea rows={3} value={g.description} onChange={setGame(d, i, 'description')} />
-                      </label>
-                      <label>
-                        <span>Game Tools / Material <small className="optional">(optional)</small></span>
-                        <textarea rows={2} value={g.tools} onChange={setGame(d, i, 'tools')} />
-                      </label>
-                      {plan.games.length > 1 && (
-                        <button type="button" className="link" onClick={() => removeGame(d, i)}>Remove game</button>
-                      )}
-                    </fieldset>
-                  ))}
-                  <button type="button" className="secondary" onClick={() => addGame(d)}>+ Add another game</button>
+                <div className="games-grid">
+                  {plan.games.map((g, i) =>
+                    g.saved ? (
+                      <article key={i} className="game-card">
+                        <header className="game-card-head">
+                          <span className="game-card-label">
+                            <DumbbellIcon size={18} /> Game {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <span className="game-card-actions">
+                            <button type="button" className="icon-btn" onClick={() => editGame(d, i)} aria-label={`Edit game ${i + 1}`} title="Edit">
+                              <EditIcon size={20} />
+                            </button>
+                            <button type="button" className="icon-btn danger" onClick={() => removeGame(d, i)} aria-label={`Delete game ${i + 1}`} title="Delete">
+                              <TrashIcon size={20} />
+                            </button>
+                          </span>
+                        </header>
+                        <div className="game-card-body">
+                          {g.name && <h3 dir="auto">{g.name}</h3>}
+                          {g.leader && (
+                            <p className="game-card-leader"><UserIcon size={18} /> {g.leader}</p>
+                          )}
+                          {g.description && (
+                            <div>
+                              <p className="game-card-label">Description</p>
+                              <p className="game-card-text" dir="auto">{g.description}</p>
+                            </div>
+                          )}
+                          {g.tools && (
+                            <div className="game-card-tools">
+                              <p className="game-card-label"><BoxIcon size={16} /> Tools / Materials</p>
+                              <p className="game-card-text" dir="auto">{g.tools}</p>
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    ) : (
+                      <fieldset key={i} className="game-edit">
+                        <legend>Game {i + 1}</legend>
+                        <label>
+                          <span>Game Leader</span>
+                          <input value={g.leader} onChange={setGame(d, i, 'leader')} />
+                        </label>
+                        <label>
+                          <span>Game Name</span>
+                          <input value={g.name} onChange={setGame(d, i, 'name')} />
+                        </label>
+                        <label>
+                          <span>Game Description <small className="optional">(optional)</small></span>
+                          <textarea rows={3} value={g.description} onChange={setGame(d, i, 'description')} />
+                        </label>
+                        <label>
+                          <span>Game Tools / Material <small className="optional">(optional)</small></span>
+                          <textarea rows={2} value={g.tools} onChange={setGame(d, i, 'tools')} />
+                        </label>
+                        <div className="game-edit-actions">
+                          <button type="button" onClick={() => saveGame(d, i)} disabled={status.state === 'saving'}>
+                            {status.state === 'saving' ? 'Saving…' : 'Save game'}
+                          </button>
+                          {(plan.games.length > 1 || g.saved) && (
+                            <button type="button" className="link" onClick={() => removeGame(d, i)}>Remove game</button>
+                          )}
+                        </div>
+                      </fieldset>
+                    ),
+                  )}
+                  <button type="button" className="secondary games-add" onClick={() => addGame(d)}>+ Add another game</button>
                 </div>
               </section>
             ))}

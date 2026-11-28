@@ -637,26 +637,26 @@ main.no-sidebar { margin-left: 0; }
 [dir="rtl"] .dp-popup { left: auto; right: 0; }
 .dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .dp-title { font-weight: 700; font-size: 0.98rem; }
-.form .dp-nav {
+:is(.form, .events-dp) .dp-nav {
   display: grid; place-items: center; width: 34px; height: 34px; min-height: 0; padding: 0;
   background: none; color: var(--primary); border-radius: 8px;
 }
-.form .dp-nav:hover:not(:disabled) { background: var(--color-blue-tint); }
-.form .dp-nav:disabled { color: #C9D3E3; background: none; opacity: 1; cursor: not-allowed; }
+:is(.form, .events-dp) .dp-nav:hover:not(:disabled) { background: var(--color-blue-tint); }
+:is(.form, .events-dp) .dp-nav:disabled { color: #C9D3E3; background: none; opacity: 1; cursor: not-allowed; }
 
 .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 .dp-weekday { text-align: center; font-size: 0.74rem; font-weight: 600; color: var(--muted); padding: 4px 0 6px; }
-.form .dp-day {
+:is(.form, .events-dp) .dp-day {
   height: 36px; min-height: 0; padding: 0; border-radius: 50%;
   font: inherit; font-size: 0.92rem; font-weight: 500; font-variant-numeric: tabular-nums;
   background: none; color: var(--text); cursor: pointer;
 }
-.form .dp-day:hover:not(:disabled) { background: var(--color-blue-tint); }
-.form .dp-day.is-today { box-shadow: inset 0 0 0 1px var(--color-blue-light); }
-.form .dp-day.is-selected, .form .dp-day.is-selected:hover { background: var(--primary); color: #fff; font-weight: 700; }
+:is(.form, .events-dp) .dp-day:hover:not(:disabled) { background: var(--color-blue-tint); }
+:is(.form, .events-dp) .dp-day.is-today { box-shadow: inset 0 0 0 1px var(--color-blue-light); }
+:is(.form, .events-dp) .dp-day.is-selected, :is(.form, .events-dp) .dp-day.is-selected:hover { background: var(--primary); color: #fff; font-weight: 700; }
 /* Days that can't be picked: faded number, clear background. */
-.form .dp-day:disabled { background: none; color: #C3CCDB; font-weight: 400; opacity: 1; cursor: not-allowed; }
-.form .dp-day:focus-visible { outline: none; box-shadow: var(--focus); }
+:is(.form, .events-dp) .dp-day:disabled { background: none; color: #C3CCDB; font-weight: 400; opacity: 1; cursor: not-allowed; }
+:is(.form, .events-dp) .dp-day:focus-visible { outline: none; box-shadow: var(--focus); }
 
 @media (max-width: 768px) {
   .dp { max-width: none; }
@@ -927,4 +927,130 @@ main.no-sidebar { margin-left: 0; }
   .reg-submit-bar { padding: 14px 14px 12px; border-radius: 20px 20px 0 0; }
   .reg-submit { padding: 16px; font-size: 1.08rem; }
   .reg-submit-hint { font-size: 0.92rem; }
+}
+
+/* Events page: "Filter by date" button + calendar → time buttons → leaders table */
+.events-dp { width: auto; max-width: none; }
+.events-dp-buttons { display: flex; gap: 6px; }
+.events-dp-clear { padding-inline: 10px; }
+.events-dp .dp-popup { left: auto; right: 0; }
+.events-dp .dp-day.has-events { background: var(--color-blue-tint); color: var(--primary); font-weight: 700; }
+.events-dp .dp-day.has-events:hover { background: #D5E7F7; }
+.events-dp .dp-day.is-selected, .events-dp .dp-day.is-selected:hover { background: var(--primary); color: #fff; }
+.events-dp-note { margin: 8px 0 0; font-size: 0.8rem; color: var(--muted); text-align: center; }
+
+.events-filter { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.events-filter-title { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+.time-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.time-button {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--border-strong); background: #fff; color: var(--text);
+  font-weight: 600; font-size: 0.92rem; text-decoration: none;
+}
+.time-button:hover { background: var(--color-blue-tint); color: var(--color-navy); }
+.time-button.is-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+.leaders-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.leaders-table-wrap h2 { margin: 0; padding: 14px 18px; font-size: 1.05rem; background: var(--color-blue-tint); border-bottom: 1px solid var(--border); }
+.leaders-scroll { overflow-x: auto; }
+.leaders-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.leaders-table th, .leaders-table td { padding: 12px 18px; text-align: start; vertical-align: top; border-bottom: 1px solid var(--border); }
+.leaders-table thead th { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: #F8FAFD; }
+.leaders-table tbody tr:last-child td { border-bottom: none; }
+.leaders-table td:first-child a { font-weight: 600; text-decoration: none; }
+.leaders-sub { display: block; font-size: 0.85rem; color: var(--muted); }
+.leaders-games li .leaders-sub { display: inline; }
+.leaders-games li .leaders-sub::before { content: '· '; }
+.leaders-games { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+
+/* Event Management: saved games show as cards in a grid, forms span the full row */
+.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; align-items: start; }
+.games-grid > .game-edit, .games-grid > .games-add { grid-column: 1 / -1; }
+.game-edit-actions { display: flex; align-items: center; gap: 16px; }
+.game-edit-actions > button:not(.link) { padding: 10px 20px; }
+.form .game-edit-actions > button.link { align-self: center; }
+
+.game-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.game-card-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 18px; border-bottom: 1px solid var(--border); }
+.game-card-label { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.game-card-head .game-card-label { font-size: 0.9rem; }
+.game-card-head .game-card-label svg { color: var(--color-navy); }
+.game-card-actions { display: flex; gap: 4px; }
+.form button.icon-btn { background: none; color: var(--text); padding: 8px; min-height: 0; border-radius: 8px; display: inline-flex; }
+.form button.icon-btn:hover:not(:disabled) { background: var(--color-blue-tint); }
+.form button.icon-btn.danger { color: var(--muted); }
+.form button.icon-btn.danger:hover:not(:disabled) { background: var(--danger-tint); color: var(--danger); }
+.game-card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+.game-card-body h3 { margin: 0; font-size: 1.2rem; overflow-wrap: anywhere; }
+.game-card-leader { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--primary); font-weight: 500; }
+.game-card-text { margin: 4px 0 0; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.game-card-tools { padding-top: 12px; border-top: 1px solid var(--border); }
+/* Wider card for pages with a grid of content (Event Management) */
+.card.card-wide { max-width: 1100px; }
+
+/* ==========================================================================
+   Mobile polish (all pages)
+   ========================================================================== */
+/* dvh = the visible screen height, so iPhone Safari's toolbar never hides the
+   bottom of the menu (Sign out). Short screens can scroll the menu. */
+.sidebar { height: 100dvh; overflow-y: auto; }
+main { min-height: 100dvh; }
+
+.cal-agenda { display: none; }
+
+@media (max-width: 768px) {
+  /* Inputs under 16px make iPhone zoom in on focus. */
+  .schedule-title-input { font-size: 16px; max-width: none; }
+
+  /* Long titles push the badges onto their own line instead of squeezing. */
+  .pending-head { flex-wrap: wrap; }
+  .badge-row { justify-content: flex-start; }
+  .detail-actions { width: 100%; }
+  .detail-actions > * { flex: 1; }
+
+  /* Events: open the date filter popup from the left so it stays on screen. */
+  .events-dp .dp-popup { left: 0; right: auto; }
+  .page-header > .events-dp { width: 100%; }
+
+  /* Event Management: game form buttons, full-width Save. */
+  .game-edit-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+  .game-edit-actions > button:not(.link) { width: 100%; }
+  .form .game-edit-actions > button.link { align-self: center; }
+  .game-card-body { padding: 14px 16px 16px; }
+  .game-card-head { padding: 8px 8px 8px 16px; }
+}
+
+@media (max-width: 640px) {
+  /* Events: the leaders table becomes one card per event. */
+  .leaders-table { min-width: 0; }
+  .leaders-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .leaders-table, .leaders-table tbody, .leaders-table tr, .leaders-table td { display: block; }
+  .leaders-table tr { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .leaders-table tbody tr:last-child { border-bottom: none; }
+  .leaders-table td { padding: 4px 0; border: none; display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
+  .leaders-table td::before { content: attr(data-label); font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+  .leaders-table td:first-child { display: block; padding-bottom: 8px; font-size: 1.02rem; }
+  .leaders-table td:first-child::before { content: none; }
+}
+
+@media (max-width: 480px) {
+  /* Calendar: cells are too narrow for titles; show colored bars and list
+     the events under the grid instead. */
+  .calendar .chip { font-size: 0; height: 6px; padding: 0; border-radius: 3px; }
+  .calendar .day { min-height: 52px; }
+  .cal-agenda { display: block; margin-top: 18px; }
+  .cal-agenda h2 { font-size: 1.05rem; margin-bottom: 10px; }
+  .cal-agenda ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cal-agenda li {
+    display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px;
+  }
+  .cal-agenda-date { font-size: 0.85rem; font-weight: 600; color: var(--muted); padding-top: 3px; }
+  .cal-agenda-date.today { color: var(--accent); }
+  .cal-agenda-events { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .cal-agenda .chip { font-size: 0.85rem; padding: 6px 8px; -webkit-line-clamp: 2; }
+  .cal-agenda .chip b { display: inline; }
+  .cal-legend { gap: 8px 14px; font-size: 0.8rem; }
+
+  .pending-actions .btn { flex: 1 1 100%; }
 }

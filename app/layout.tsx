@@ -34,7 +34,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${arabic.variable} h-full`}>
       <body className="min-h-full antialiased">
-        <div className="flex h-screen">
+        <div className="flex h-dvh">
           {/* Logged-out visitors (login page, public Form 1) don't get the menu. */}
           {loggedIn && <Sidebar email={email} />}
           <main className={`flex-1 overflow-y-auto${loggedIn ? '' : ' no-sidebar'}`}>{children}</main>
